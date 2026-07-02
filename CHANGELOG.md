@@ -2,6 +2,19 @@
 
 Display versions `X.XX.XXX` (PEP 440 normalized in pyproject). Tag every release `vX.XX.XXX`.
 
+## [0.05.000] — 2026-07-02
+
+### Added
+- U11 failures (`des/failures.py`, OFF by default): per-truck exponential-TBF breakdowns with
+  lognormal repairs (materialize at the cycle boundary — the truck parks at its node),
+  per-loader downtime (the granted truck waits through the repair; dispatch sees it via
+  est_free_s), and scheduled segment-closure windows fed into the router's `closed` set. A
+  loaded truck caught at the face by a closure HOLDS its spot and retries until the window
+  reopens. `ShiftResult.downtime` carries per-unit repair seconds.
+- U11 perf: `scripts/bench_engine.py` + `tests/test_perf.py` CI floor (>= 20k executed
+  events/s on the reference preset, traffic ON). Measured locally: ~77k ev/s (starter pit),
+  ~63k ev/s (48-truck pit) — comfortably above the floor; no `__slots__` pass needed.
+
 ## [0.04.000] — 2026-07-02
 
 ### Added

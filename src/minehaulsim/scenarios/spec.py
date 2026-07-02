@@ -122,7 +122,7 @@ class MineSpec:
 
     def run(self, policy: DispatchPolicy | None = None, seed: int = 0,
             until_s: float = 8 * 3600.0, fast_mode: bool = False,
-            plan_context=None) -> ShiftResult:
+            plan_context=None, failures=None) -> ShiftResult:
         """Simulate one shift of this scenario. Deterministic in (spec, policy, seed)."""
         rt = self.to_runtime()
         return run_shift(rt.net, rt.loaders, rt.dumps, rt.trucks,
@@ -130,4 +130,4 @@ class MineSpec:
                          plan_context=plan_context, until_s=until_s,
                          zones=rt.zones, junctions=rt.junctions, fast_mode=fast_mode,
                          lhds=rt.lhds or None, ore_passes=rt.ore_passes or None,
-                         shaft_bin=rt.shaft_bin)
+                         shaft_bin=rt.shaft_bin, failures=failures)

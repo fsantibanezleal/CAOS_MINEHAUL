@@ -16,7 +16,8 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from ..des.dispatch import DispatchPolicy, MinQueuePolicy
-from ..des.sim import LoaderSpec, ShiftResult, TruckSpec, run_shift
+from ..des.sim import (LhdSpec, LoaderSpec, OrePassSpec, ShaftBinSpec, ShiftResult, TruckSpec,
+                       run_shift)
 from ..network.constraints import DirectionZone, Junction
 from ..network.graph import RoadNetwork
 
@@ -32,6 +33,9 @@ class RuntimeBundle:
     loaders: list[LoaderSpec]
     dumps: list[int]
     trucks: list[TruckSpec]
+    lhds: list[LhdSpec] = field(default_factory=list)
+    ore_passes: list[OrePassSpec] = field(default_factory=list)
+    shaft_bin: ShaftBinSpec | None = None
 
 
 @dataclass(frozen=True)
@@ -46,8 +50,10 @@ class MineSpec:
     loaders: tuple[dict, ...] = ()           # {node_id, loader_class, n_spots}
     dumps: tuple[int, ...] = ()              # legal dump nodes; [0] is the primary crusher
     trucks: tuple[dict, ...] = ()            # {truck_id, unit_name, start_loader}
-    topo: dict = field(default_factory=dict)  # PitTopoSpec key set (consumer contract)
+    topo: dict = field(default_factory=dict)  # PitTopoSpec key set / minetopo payload
     est: dict = field(default_factory=dict)   # {"cycle_s": .., "match_factor": .., "load_s": ..}
+    lhds: tuple[dict, ...] = ()              # underground: {lhd_id, unit_name, drawpoints, tip_node, pass_id}
+    materials: dict = field(default_factory=dict)  # {"ore_passes": [...], "shaft_bin": {...}|absent}
     schema: str = SPEC_SCHEMA
 
     # ---- serialization (canonical bytes) ----
@@ -58,6 +64,7 @@ class MineSpec:
             "zones": list(self.zones), "junctions": list(self.junctions),
             "loaders": list(self.loaders), "dumps": list(self.dumps),
             "trucks": list(self.trucks), "topo": self.topo, "est": self.est,
+            "lhds": list(self.lhds), "materials": self.materials,
         }
         text = json.dumps(d, sort_keys=True, separators=(",", ":"), ensure_ascii=True) + "\n"
         if path is not None:
@@ -83,6 +90,8 @@ class MineSpec:
             dumps=tuple(int(x) for x in d.get("dumps", [])),
             trucks=tuple(dict(t) for t in d.get("trucks", [])),
             topo=dict(d.get("topo", {})), est=dict(d.get("est", {})),
+            lhds=tuple(dict(x) for x in d.get("lhds", [])),
+            materials=dict(d.get("materials", {})),
         )
 
     def with_name(self, name: str) -> "MineSpec":
@@ -97,8 +106,19 @@ class MineSpec:
                               n_spots=int(x.get("n_spots", 1))) for x in self.loaders]
         trucks = [TruckSpec(truck_id=int(t["truck_id"]), unit_name=str(t["unit_name"]),
                             start_loader=int(t["start_loader"])) for t in self.trucks]
+        lhds = [LhdSpec(lhd_id=int(x["lhd_id"]), unit_name=str(x["unit_name"]),
+                        drawpoints=tuple(int(d) for d in x["drawpoints"]),
+                        tip_node=int(x["tip_node"]), pass_id=int(x["pass_id"]))
+                for x in self.lhds]
+        ore_passes = [OrePassSpec(pass_id=int(x["pass_id"]), chute_node=int(x["chute_node"]),
+                                  capacity_t=float(x["capacity_t"]))
+                      for x in self.materials.get("ore_passes", [])]
+        sb = self.materials.get("shaft_bin")
+        shaft_bin = (ShaftBinSpec(node=int(sb["node"]), capacity_t=float(sb["capacity_t"]),
+                                  hoist_tph=float(sb["hoist_tph"])) if sb else None)
         return RuntimeBundle(net=net, zones=zones, junctions=junctions, loaders=loaders,
-                             dumps=list(self.dumps), trucks=trucks)
+                             dumps=list(self.dumps), trucks=trucks, lhds=lhds,
+                             ore_passes=ore_passes, shaft_bin=shaft_bin)
 
     def run(self, policy: DispatchPolicy | None = None, seed: int = 0,
             until_s: float = 8 * 3600.0, fast_mode: bool = False,
@@ -108,4 +128,6 @@ class MineSpec:
         return run_shift(rt.net, rt.loaders, rt.dumps, rt.trucks,
                          policy if policy is not None else MinQueuePolicy(), seed=seed,
                          plan_context=plan_context, until_s=until_s,
-                         zones=rt.zones, junctions=rt.junctions, fast_mode=fast_mode)
+                         zones=rt.zones, junctions=rt.junctions, fast_mode=fast_mode,
+                         lhds=rt.lhds or None, ore_passes=rt.ore_passes or None,
+                         shaft_bin=rt.shaft_bin)

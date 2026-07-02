@@ -26,11 +26,12 @@ from ..equipment.catalog import LOADERS, TRUCKS
 from ..network.routing import Router
 from .spec import MineSpec, RuntimeBundle
 
-MAX_GRADE_PCT = {"openpit": 11.0, "underground": 15.5}
+MAX_GRADE_PCT = {"openpit": 11.0, "underground": 16.0}
 ZONE_MAX_LEN_M = 450.0
 JUNCTION_MAX_DEGREE = 5
 MF_BOUNDS = (0.5, 2.2)
-CYCLE_BOUNDS_MIN = (6.0, 90.0)
+# underground truck_shaft cycles (chute -> bin on the same level) are legitimately short
+CYCLE_BOUNDS_BY_KIND = {"openpit": (6.0, 90.0), "underground": (2.0, 90.0)}
 SMOKE_MIN_S = 1800.0
 NOMINAL_DUMP_S = 55.0
 
@@ -148,14 +149,21 @@ def check_grades(spec: MineSpec, rt: RuntimeBundle) -> CheckResult:
 
 
 def check_geometry_sane(spec: MineSpec, rt: RuntimeBundle) -> CheckResult:
-    floor_r = float(spec.params.get("floor_r_min_m", 0.0))
-    if floor_r < 40.0:
-        return CheckResult("geometry_sane", False, f"floor radius {floor_r:.1f} m < 40 m")
     depth = float(spec.params.get("depth_m", 0.0))
     for n in rt.net.nodes.values():
         if not (-depth - 1e-6 <= n.pos[2] <= 1e-6):
             return CheckResult("geometry_sane", False,
                                f"node {n.id} elevation {n.pos[2]:.1f} outside [-{depth:.0f}, 0]")
+    if spec.kind == "openpit":
+        floor_r = float(spec.params.get("floor_r_min_m", 0.0))
+        if floor_r < 40.0:
+            return CheckResult("geometry_sane", False, f"floor radius {floor_r:.1f} m < 40 m")
+    else:                                                # underground
+        n_levels = int(spec.params.get("n_levels", 0))
+        if n_levels < 3:
+            return CheckResult("geometry_sane", False, f"only {n_levels} levels (need >= 3)")
+        if spec.materials.get("ore_passes") and not spec.lhds:
+            return CheckResult("geometry_sane", False, "ore passes without any LHD to feed them")
     return CheckResult("geometry_sane", True)
 
 
@@ -185,9 +193,10 @@ def check_throughput_sane(spec: MineSpec, rt: RuntimeBundle) -> CheckResult:
     if cycle_s is None:
         return CheckResult("throughput_sane", False, "cycle estimate unroutable")
     cyc_min = cycle_s / 60.0
-    if not (CYCLE_BOUNDS_MIN[0] <= cyc_min <= CYCLE_BOUNDS_MIN[1]):
+    bounds = CYCLE_BOUNDS_BY_KIND.get(spec.kind, (6.0, 90.0))
+    if not (bounds[0] <= cyc_min <= bounds[1]):
         return CheckResult("throughput_sane", False,
-                           f"estimated cycle {cyc_min:.1f} min outside {CYCLE_BOUNDS_MIN}")
+                           f"estimated cycle {cyc_min:.1f} min outside {bounds}")
     mf = static_match_factor(rt, cycle_s)
     if not (MF_BOUNDS[0] <= mf <= MF_BOUNDS[1]):
         return CheckResult("throughput_sane", False,

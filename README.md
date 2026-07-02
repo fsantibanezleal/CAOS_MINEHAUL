@@ -21,16 +21,46 @@ closed. `minehaulsim` fills that gap:
   a per-truck position trace, and topography exports for 3D viewers.
 - **numpy-only core.** Visualization is an opt-in extra; the core never imports matplotlib.
 
+## Scenario variety — the gallery
+
+Twelve scenarios from one `generate_batch(12, seed=2026)` call, every one passing the seven
+validity gates with a unique structural signature (full set + per-pit summaries in
+[`gallery/`](gallery/README.md); regenerate with `python scripts/gen_gallery.py`):
+
+![gallery contact sheet](gallery/gallery.png)
+
 ## Status
 
-Early alpha (`0.01.000`): scaffold + the determinism foundation (typed core + seeded stream
-manager). The layers land in verifiable units — see `CHANGELOG.md`.
+`0.10.000` — the first published release: equipment + rimpull kinematics, constrained routing,
+deterministic DES with per-segment traffic (emergent bunching), the full haul cycle with five
+dispatch policies, a mine-planning layer (phases, depletion, slope damage, speed zones),
+underground multi-level mines with LHD/ore-pass inventory coupling and three flow modes,
+opt-in failure processes with a CI-enforced performance floor, the DispatchLab IO contracts,
+the varied generators, the viz extra and the CLI. Per-unit history in `CHANGELOG.md`.
 
-## Install (dev)
+**Docs:** the navigable wiki starts at [`docs/README.md`](docs/README.md) — read
+[`docs/what-it-is-and-isnt.md`](docs/what-it-is-and-isnt.md) before trusting any number.
+
+## Install
 
 ```bash
+pip install minehaulsim            # numpy-only core
+pip install "minehaulsim[viz]"     # + matplotlib renders
+
+# development
 pip install -e ".[dev]"
 pytest
+```
+
+## CLI
+
+```bash
+minehaulsim generate --seed 42 --out out/     # validated spec JSON (+ plan SVG with [viz])
+minehaulsim batch --n 10 --seed 2026 --out samples/
+minehaulsim run --spec out/openpit-42.minespec.json --policy minqueue --out out/
+minehaulsim render --spec out/openpit-42.minespec.json --out out/
+minehaulsim validate out/mhs-openpit-42-minqueue.csv
+minehaulsim demo
 ```
 
 ## Honesty

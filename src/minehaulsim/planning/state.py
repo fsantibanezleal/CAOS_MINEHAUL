@@ -359,9 +359,10 @@ class PitState:
         self.journal.append({"op": "reposition", "bench": be.id, "arc": arc_now})
 
     def _complete_bench(self, bench_id: int, phase_id: int) -> None:
-        spur = self._face_spur.pop(bench_id, None)
-        if spur is not None:
-            self._retired.add(spur)
+        # The completed bench's spur PERSISTS as a legacy road (physical reality: the road to a
+        # mined-out bench remains until the next pushback overruns it) — retiring it instantly
+        # would strand trucks queued/parked at the dead face with no exit geometry.
+        self._face_spur.pop(bench_id, None)
         self._face_node.pop(bench_id, None)
         self._face_arc.pop(bench_id, None)
         be = self.model.bench(bench_id)

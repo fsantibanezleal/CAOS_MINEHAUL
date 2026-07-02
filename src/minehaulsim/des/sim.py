@@ -29,6 +29,7 @@ from ..rng import RngManager
 from .dispatch import DispatchPolicy, LoaderView, MineView, TruckView
 from .engine import Engine
 from .resources import QueueResource
+from .traversal import TrafficState
 
 NOMINAL_DUMP_MEAN_S = 55.0
 DUMP_CV = 0.15
@@ -61,7 +62,8 @@ class ShiftResult:
 class _Sim:
     def __init__(self, net: RoadNetwork, loaders: list[LoaderSpec], dumps: list[int],
                  trucks: list[TruckSpec], policy: DispatchPolicy, seed: int,
-                 plan_context=None, until_s: float = 8 * 3600.0) -> None:
+                 plan_context=None, until_s: float = 8 * 3600.0,
+                 zones=None, junctions=None, fast_mode: bool = False) -> None:
         self.base_net = net
         self.plan = plan_context
         self.engine = Engine()
@@ -72,6 +74,10 @@ class _Sim:
         self.dumps = list(dumps)
         self.loader_specs = {ls.node_id: ls for ls in loaders}
         self.trucks = {t.truck_id: t for t in trucks}
+        self._zones_spec = zones or {}
+        self._junctions_spec = junctions or {}
+        self.fast_mode = fast_mode
+        self.traffic: TrafficState | None = None
         self._rebuild_router()
         # resources
         self.loader_q: dict[int, QueueResource] = {
@@ -90,7 +96,12 @@ class _Sim:
         else:
             self._net = self.base_net
             self._revision = 0
-        self.router = Router(self._net)
+        self.router = Router(self._net, junctions=self._junctions_spec)
+        if not self.fast_mode:
+            if self.traffic is None:
+                self.traffic = TrafficState(self.engine, self._net, self._zones_spec, self._junctions_spec)
+            else:
+                self.traffic.rebind(self._net)
 
     def _routing_state(self) -> tuple[frozenset[int], dict[int, float]]:
         if self.plan is None:
@@ -117,10 +128,28 @@ class _Sim:
             self.inbound[new] = self.inbound.pop(old)
 
     def _travel_s(self, truck: TruckSpec, a: int, b: int, loaded: bool) -> float | None:
+        r = self._route(truck, a, b, loaded)
+        return None if r is None else r.time_s
+
+    def _route(self, truck: TruckSpec, a: int, b: int, loaded: bool):
         closed, caps = self._routing_state()
         unit = TRUCKS[truck.unit_name]
-        r = self.router.route(a, b, unit, loaded=loaded, closed=closed, speed_caps=caps)
-        return None if r is None else r.time_s
+        return self.router.route(a, b, unit, loaded=loaded, closed=closed, speed_caps=caps)
+
+    def _go(self, truck: TruckSpec, a: int, b: int, loaded: bool, payload: float,
+            arrive_cb, *cb_args) -> bool:
+        """Send a truck a->b: traffic traversal when enabled, else the free-flow single event."""
+        r = self._route(truck, a, b, loaded)
+        if r is None:
+            return False
+        if self.traffic is None:
+            self.engine.after(r.time_s, arrive_cb, *cb_args)
+            return True
+        unit = TRUCKS[truck.unit_name]
+        gvw = unit.empty_t + (payload if loaded else 0.0)
+        _, caps = self._routing_state()
+        self.traffic.traverse(unit, gvw, loaded, r, caps, lambda: arrive_cb(*cb_args))
+        return True
 
     # ---- views for the policy ----
     def _loader_node_for(self, node_id: int) -> int:
@@ -223,8 +252,7 @@ class _Sim:
         # in-flight legs finish on the old geometry).
         mv = self._mine_view(truck, loader)
         dump = self.policy.next_dump(TruckView(tid, truck.unit_name, truck.start_loader), mv)
-        tt = self._travel_s(truck, loader, dump, loaded=True)
-        if tt is None:
+        if self._route(truck, loader, dump, loaded=True) is None:
             raise RuntimeError(f"no loaded route {loader}->{dump} for truck {tid}")
         if self.plan is not None:
             # couple sim tonnes to depletion EXACTLY: the cyclelog records what the model YIELDED
@@ -239,7 +267,7 @@ class _Sim:
                 return
         self.loader_q[loader].release()
         self._emit(self.engine.now, tid, loader, "haul", payload)
-        self.engine.after(tt, self._arrive_dump, tid, dump, payload)
+        self._go(truck, loader, dump, True, payload, self._arrive_dump, tid, dump, payload)
 
     def _arrive_dump(self, tid: int, dump: int, payload: float) -> None:
         self.truck_pos[tid] = dump
@@ -273,7 +301,8 @@ class _Sim:
         if tt is None or tt == float("inf"):
             return                                       # unreachable (severed): park
         self.inbound[loader] += 1
-        self.engine.after(tt, self._go_load, tid, loader)
+        if not self._go(truck, at_node, loader, False, 0.0, self._go_load, tid, loader):
+            self.inbound[loader] = max(0, self.inbound[loader] - 1)
 
     def run(self) -> ShiftResult:
         self.start()
@@ -287,6 +316,10 @@ class _Sim:
 
 def run_shift(net: RoadNetwork, loaders: list[LoaderSpec], dumps: list[int],
               trucks: list[TruckSpec], policy: DispatchPolicy, seed: int,
-              plan_context=None, until_s: float = 8 * 3600.0) -> ShiftResult:
-    """Simulate one shift; returns the cyclelog events + KPIs. Deterministic in (inputs, seed)."""
-    return _Sim(net, loaders, dumps, trucks, policy, seed, plan_context, until_s).run()
+              plan_context=None, until_s: float = 8 * 3600.0,
+              zones=None, junctions=None, fast_mode: bool = False) -> ShiftResult:
+    """Simulate one shift; returns the cyclelog events + KPIs. Deterministic in (inputs, seed).
+    Traffic (per-segment slots + no-overtake headway + direction zones + junctions) is ON by
+    default; fast_mode=True bypasses it for quick statistical runs (free-flow times)."""
+    return _Sim(net, loaders, dumps, trucks, policy, seed, plan_context, until_s,
+                zones, junctions, fast_mode).run()

@@ -118,3 +118,17 @@ def test_plan_coupled_shift_tonnes_equal_depletion_and_trucks_park_when_exhauste
     assert res.tonnes <= 2100.0 + 1e-9
     last_event_t = max(e["t"] for e in res.events)
     assert last_event_t < 8 * 3600.0                 # everything parked long before cutoff
+
+
+def test_traffic_headway_serializes_and_fast_mode_is_free_flow():
+    """U6b: the FIFO no-overtake rule makes bunching EMERGE — dumps arrive >= headway_s apart on the
+    shared segment; fast_mode (free-flow) lets them arrive closer. Same seed isolates the effect."""
+    traffic = run_shift(_net(), [LoaderSpec(1)], [200], TRUCKS6[:3], FixedPolicy(), seed=5)
+    fast = run_shift(_net(), [LoaderSpec(1)], [200], TRUCKS6[:3], FixedPolicy(), seed=5, fast_mode=True)
+    # under traffic, consecutive arrivals at the dump (same shared segment) are >= 8 s apart
+    t_dumps = sorted(e["t"] for e in traffic.events if e["event"] == "dump")
+    gaps = [b - a for a, b in zip(t_dumps, t_dumps[1:])]
+    assert all(g >= 8.0 - 1e-9 for g in gaps[:3])
+    # both modes still mine, and the runs differ (traffic adds real delay)
+    assert traffic.tonnes > 0 and fast.tonnes > 0
+    assert traffic.events != fast.events

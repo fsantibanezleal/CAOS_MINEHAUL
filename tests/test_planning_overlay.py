@@ -64,17 +64,20 @@ def test_crossing_the_step_re_anchors_the_spur_with_exact_arc_length():
     assert len(ov.retired_segments) == 1                      # the old spur retired
 
 
-def test_bench_completion_retires_spur_records_topo_delta_and_activates_next():
+def test_bench_completion_keeps_legacy_spur_records_topo_delta_and_activates_next():
     st = _state()
     st.deplete(10, 100.0)
     res = st.deplete(11, 200.0)                               # completes bench 1
     assert res.bench_completed and res.overlay_changed
     delta = st.topo_delta()
     assert delta and delta[0]["bench_id"] == 1 and delta[0]["event"] == "bench_mined_out"
-    # bench 2's face materialized: a live spur anchored at node 102
+    # bench 2's face materialized (spur to anchor 102); bench 1's spur PERSISTS as a legacy road
+    # (trucks at the dead face must be able to leave; the next pushback overruns it later)
     ov = st.overlay()
     live = [s for s in ov.added_segments if s.id not in ov.retired_segments]
-    assert len(live) == 1 and live[0].b == 102
+    anchors = sorted(s.b for s in live)
+    assert 102 in anchors                                     # the new face's spur
+    assert 101 in anchors                                     # the legacy exit road
 
 
 def test_revision_is_monotone_across_a_full_phase():
@@ -112,7 +115,7 @@ def test_advance_period_materializes_new_phase_faces():
     st.advance_period()                                       # phase 2 becomes active
     ov = st.overlay()
     live = [s for s in ov.added_segments if s.id not in ov.retired_segments]
-    assert len(live) == 1 and live[0].b == 103                # bench 3's anchor
+    assert 103 in {s.b for s in live}                         # bench 3's new spur (legacy spurs persist)
 
 
 def test_extended_snapshot_round_trip_preserves_overlay_and_counters():
@@ -129,4 +132,4 @@ def test_extended_snapshot_round_trip_preserves_overlay_and_counters():
     st2.deplete(10, 40.0)
     st2.deplete(11, 200.0)                                    # completes bench 1 -> new ids allocated
     new_ids = [s.id for s in st2.overlay().added_segments]
-    assert len(new_ids) == len(set(new_ids))
+    assert len(new_ids) == len(set(new_ids))                  # counters resume without collision

@@ -9,6 +9,9 @@ they are a graph whose edges carry the physical and OPERATIONAL constraints real
     - `zone_id`        membership in a DirectionZone: a chain of single-lane BIDIRECTIONAL
                        segments (an underground drift between passing bays, a narrow pit ramp)
                        where opposing traffic must be arbitrated at runtime
+    - `single_lane_op` OPERATIONALLY one lane despite width_class 2: a pit ramp wide enough for
+                       the largest truck but built as a single travel lane, so it can join a
+                       DirectionZone without excluding wide vehicles (U8 open-pit generator)
     - `grade_pct`      signed in the a->b direction; long ramps are split into piecewise-constant
                        grade segments AT GENERATION TIME so traversal time is closed-form
     - `speed_limit_kmh` curve/junction-approach limits
@@ -53,6 +56,7 @@ class Segment:
     speed_limit_kmh: float
     zone_id: int | None = None
     rolling_resistance_pct: float = 2.0
+    single_lane_op: bool = False           # wide enough for the fleet, but ONE travel lane
 
     def __post_init__(self) -> None:
         if self.length_m <= 0:
@@ -72,6 +76,7 @@ class Segment:
             "length_m": self.length_m, "grade_pct": self.grade_pct, "width_class": self.width_class,
             "one_way": self.one_way, "speed_limit_kmh": self.speed_limit_kmh, "zone_id": self.zone_id,
             "rolling_resistance_pct": self.rolling_resistance_pct,
+            "single_lane_op": self.single_lane_op,
         }
 
     @classmethod
@@ -84,6 +89,7 @@ class Segment:
             speed_limit_kmh=float(d["speed_limit_kmh"]),
             zone_id=None if d.get("zone_id") is None else int(d["zone_id"]),
             rolling_resistance_pct=float(d.get("rolling_resistance_pct", 2.0)),
+            single_lane_op=bool(d.get("single_lane_op", False)),
         )
 
 
@@ -143,8 +149,9 @@ class RoadNetwork:
         for s in self.segments.values():
             used.add(s.a)
             used.add(s.b)
-            if s.zone_id is not None and s.width_class != 1:
-                issues.append(f"segment {s.id}: in DirectionZone {s.zone_id} but width_class=2")
+            if s.zone_id is not None and s.width_class != 1 and not s.single_lane_op:
+                issues.append(f"segment {s.id}: in DirectionZone {s.zone_id} but width_class=2 "
+                              "and not single_lane_op")
         for n in self.nodes.values():
             if n.kind in ("face", "dump", "crusher", "portal", "chute", "bin") and n.id not in used:
                 issues.append(f"{n.kind} node {n.id} is not connected to any segment")

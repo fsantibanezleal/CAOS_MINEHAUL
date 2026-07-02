@@ -1,6 +1,6 @@
 [project]
 name = "minehaulsim"
-version = "0.2.0"
+version = "0.3.0"
 description = "Deterministic discrete-event simulation of open-pit and underground mine haulage on constrained road networks, with seeded parametric mine generators"
 readme = "README.md"
 requires-python = ">=3.11"

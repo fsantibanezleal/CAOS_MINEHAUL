@@ -179,6 +179,28 @@ class PitState:
     def routing_inputs(self) -> tuple[frozenset[int], dict[int, float]]:
         return self.overlay().routing_inputs()
 
+    # ---- PlanContext protocol (the DES hook, design P8; consumed by run_shift in U6) ----
+    def overlay_revision(self) -> int:
+        return self._revision
+
+    def effective_network(self, base: RoadNetwork) -> RoadNetwork:
+        return self.overlay().effective_network(base)
+
+    def is_diggable(self, face_node: int) -> bool:
+        """A loader at this face node may serve iff its block is legally diggable NOW."""
+        return any(f.face_node == face_node for f in self.active_faces())
+
+    def block_at_face(self, face_node: int) -> int:
+        for f in self.active_faces():
+            if f.face_node == face_node:
+                return f.block_id
+        raise KeyError(f"no active face at node {face_node}")
+
+    def on_load(self, face_node: int, tonnes: float) -> DepletionResult:
+        """Couple the sim to depletion: each completed loading depletes the SAME tonnes the
+        cyclelog records — simulation output and model state can never diverge."""
+        return self.deplete(self.block_at_face(face_node), tonnes)
+
     def topo_delta(self) -> list[dict[str, Any]]:
         return [dict(d) for d in self._topo_delta]
 

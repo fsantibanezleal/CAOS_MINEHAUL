@@ -2,6 +2,21 @@
 
 Display versions `X.XX.XXX` (PEP 440 normalized in pyproject). Tag every release `vX.XX.XXX`.
 
+## [0.10.000] — 2026-07-02
+
+First published release (PyPI, trusted publishing).
+
+### Added
+- U12 documentation: navigable `docs/` wiki (architecture, theory with equations + references,
+  normative data contracts, scenario axes + validity gates, guides incl. bring-your-own-network
+  and DispatchLab integration), `what-it-is-and-isnt.md` honesty page, package ADRs 0001–0006
+  (engine choice, numpy-only, cyclelog event anchoring, name, `single_lane_op`, inventory-coupled
+  fleets).
+
+### Notes
+- Versions 0.06–0.09 were not skipped work: 0.10.000 is the agreed first-release milestone
+  covering units U1–U12 (see the per-unit entries below).
+
 ## [0.05.000] — 2026-07-02
 
 ### Added

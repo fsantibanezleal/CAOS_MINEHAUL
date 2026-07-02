@@ -31,15 +31,23 @@ validity gates with a unique structural signature (full set + per-pit summaries 
 
 ## Status
 
-Early alpha (`0.03.000`): equipment + rimpull kinematics, constrained routing, deterministic DES
-with per-segment traffic (emergent bunching), the full haul cycle with five dispatch policies,
-a mine-planning layer (phases, depletion, slope damage, speed zones), the DispatchLab IO
-contracts, the varied open-pit generator, the viz extra and the CLI. The remaining layers land
-in verifiable units — see `CHANGELOG.md`.
+`0.10.000` — the first published release: equipment + rimpull kinematics, constrained routing,
+deterministic DES with per-segment traffic (emergent bunching), the full haul cycle with five
+dispatch policies, a mine-planning layer (phases, depletion, slope damage, speed zones),
+underground multi-level mines with LHD/ore-pass inventory coupling and three flow modes,
+opt-in failure processes with a CI-enforced performance floor, the DispatchLab IO contracts,
+the varied generators, the viz extra and the CLI. Per-unit history in `CHANGELOG.md`.
 
-## Install (dev)
+**Docs:** the navigable wiki starts at [`docs/README.md`](docs/README.md) — read
+[`docs/what-it-is-and-isnt.md`](docs/what-it-is-and-isnt.md) before trusting any number.
+
+## Install
 
 ```bash
+pip install minehaulsim            # numpy-only core
+pip install "minehaulsim[viz]"     # + matplotlib renders
+
+# development
 pip install -e ".[dev]"
 pytest
 ```

@@ -2,7 +2,7 @@
 
 Public API grows per build unit; see CHANGELOG.md. Display version lives in VERSION (X.XX.XXX).
 """
-__version__ = "0.5.0"  # PEP 440; display form in VERSION. MUST bind before submodule imports:
+__version__ = "0.10.0"  # PEP 440; display form in VERSION. MUST bind before submodule imports:
                        # io.provenance reads it during package initialization.
 
 from .rng import RngManager                                                    # noqa: E402

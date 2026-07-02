@@ -27,11 +27,13 @@ from typing import Any
 
 import numpy as np
 
-from ..network.graph import Segment
+from ..network.graph import RoadNetwork, Segment
 from ..types import XYZ
+from .damage import DamageConfig, DamageEffects, SlopeDamageEvent, resolve_damage
 from .overlay import PLANNING_NODE_ID_BASE, PLANNING_SEG_ID_BASE, NetworkOverlay
 from .phase import MinePlan, Period
 from .pit_model import Bench, PitModel
+from .zones import SpeedZone, compose_speed_caps
 
 SPUR_SPEED_LIMIT_KMH = 25.0     # bench-floor operating limit
 SPUR_RR_PCT = 2.5               # in-pit surface
@@ -85,8 +87,10 @@ class PitState:
         self._moved: dict[int, tuple[float, float, float]] = {}
         self._added: dict[int, Segment] = {}
         self._retired: set[int] = set()
-        self._closed: set[int] = set()                # damage closures (U-P3 fills this)
-        self._caps: dict[int, float] = {}             # composed speed caps (U-P3)
+        self._closed: set[int] = set()                # composed damage closures
+        self._caps: dict[int, float] = {}             # composed speed caps (zones + damage)
+        self._zones: dict[int, SpeedZone] = {}        # active named zones
+        self._damages: dict[int, tuple[SlopeDamageEvent, DamageEffects]] = {}
         self._topo_delta: list[dict[str, Any]] = []
         for pid in self.plan.periods[0].active_phases:
             self._materialize_phase_face(pid)
@@ -225,6 +229,60 @@ class PitState:
             self._materialize_phase_face(pid)
         self.journal.append({"op": "advance_period", "to": self.period_idx})
 
+    # =========================== damage + zones (U-P3) ===========================
+    def apply_damage(self, event: SlopeDamageEvent, net: RoadNetwork,
+                     cfg: DamageConfig = DamageConfig()) -> DamageEffects:
+        """Resolve a wall event against the network and compose its effects into routing state."""
+        if event.id in self._damages:
+            raise ValueError(f"damage event {event.id} already active")
+        eff = resolve_damage(self.model, net, event, cfg)
+        self._damages[event.id] = (event, eff)
+        self._recompose()
+        self.journal.append({"op": "apply_damage", "event": event.id,
+                             "severity": event.severity.value,
+                             "closed": sorted(eff.closed_segments)})
+        return eff
+
+    def clear_damage(self, event_id: int) -> None:
+        """Drop an event and RECOMPUTE the composed sets from the remaining active set
+        (never decrement-in-place: overlapping damages stay correct)."""
+        if event_id not in self._damages:
+            raise KeyError(f"no active damage event {event_id}")
+        del self._damages[event_id]
+        self._recompose()
+        self.journal.append({"op": "clear_damage", "event": event_id})
+
+    def add_zone(self, zone: SpeedZone) -> None:
+        if zone.id in self._zones:
+            raise ValueError(f"zone {zone.id} already active")
+        self._zones[zone.id] = zone
+        self._recompose()
+        self.journal.append({"op": "add_zone", "zone": zone.id, "cap": zone.cap_kmh})
+
+    def remove_zone(self, zone_id: int) -> None:
+        if zone_id not in self._zones:
+            raise KeyError(f"no active zone {zone_id}")
+        del self._zones[zone_id]
+        self._recompose()
+        self.journal.append({"op": "remove_zone", "zone": zone_id})
+
+    def active_damages(self) -> tuple[SlopeDamageEvent, ...]:
+        return tuple(ev for ev, _ in self._damages.values())
+
+    def _recompose(self) -> None:
+        """Rebuild closures + caps from the FULL active set (zones + all damages)."""
+        self._closed = set()
+        derations: dict[int, float] = {}
+        for _, eff in self._damages.values():
+            self._closed |= eff.closed_segments
+            for sid, cap in eff.derated:
+                cur = derations.get(sid)
+                derations[sid] = cap if cur is None else min(cur, cap)
+        self._caps = compose_speed_caps(self._zones.values(), extra=derations)
+        # closures dominate: a closed segment needs no cap entry
+        for sid in self._closed:
+            self._caps.pop(sid, None)
+
     # =========================== cascade internals ===========================
     def _materialize_phase_face(self, phase_id: int) -> None:
         bench_id = self.current_bench_of(phase_id)
@@ -311,6 +369,12 @@ class PitState:
                     "closed": sorted(self._closed),
                     "caps": {str(k): v for k, v in self._caps.items()},
                     "topo_delta": list(self._topo_delta),
+                    "zones": [z.to_dict() for z in self._zones.values()],
+                    "damages": [{"event": ev.to_dict(),
+                                 "closed": sorted(eff.closed_segments),
+                                 "derated": [list(p) for p in eff.derated],
+                                 "zone": eff.exclusion_zone.to_dict() if eff.exclusion_zone else None}
+                                for ev, eff in self._damages.values()],
                 }}
 
     @classmethod
@@ -334,6 +398,14 @@ class PitState:
         st._closed = set(ov["closed"])
         st._caps = {int(k): float(v) for k, v in ov["caps"].items()}
         st._topo_delta = list(ov["topo_delta"])
+        st._zones = {z["id"]: SpeedZone.from_dict(z) for z in ov.get("zones", [])}
+        for dd in ov.get("damages", []):
+            ev = SlopeDamageEvent.from_dict(dd["event"])
+            eff = DamageEffects(
+                event_id=ev.id, closed_segments=frozenset(dd["closed"]),
+                derated=tuple((int(a), float(b)) for a, b in dd["derated"]),
+                exclusion_zone=SpeedZone.from_dict(dd["zone"]) if dd.get("zone") else None)
+            st._damages[ev.id] = (ev, eff)
         return st
 
 

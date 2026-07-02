@@ -75,7 +75,9 @@ def validate_cyclelog(path: str | Path) -> IngestReport:  # noqa: PLR0912 - the 
     rows = []
     for i, r in enumerate(raw):
         try:
-            t = float(r["t"]); truck = int(r["truck_id"]); node = int(r["shovel_id"])
+            t = float(r["t"])
+            truck = int(r["truck_id"])
+            node = int(r["shovel_id"])
             payload = float(r["payload_t"])
         except (TypeError, ValueError):
             rep.rejected.append({"row": i, "reason": "non-numeric field"})

@@ -2,6 +2,42 @@
 
 Display versions `X.XX.XXX` (PEP 440 normalized in pyproject). Tag every release `vX.XX.XXX`.
 
+## [0.02.000] — 2026-07-02
+
+Consolidates build units U2..U8 (each merged via its own PR; see the git history for the
+per-unit record).
+
+### Added
+- U2 equipment: truck/loader/LHD catalog with first-principles rimpull + retarder envelopes;
+  TALPAC/FPC speed solver (`attainable_speed_kmh`, memoized `SpeedSolver`, accel-penalty
+  `traverse_time_s`).
+- U3 network: constrained directed multigraph (`RoadNetwork`, `Segment` with signed grade,
+  width class, one-way, `DirectionZone` membership), `DirectionZone` (lockout / loaded_priority /
+  group_batching), `Junction`, headway-based `segment_capacity`.
+- U4 routing: constrained shortest-expected-time `Router` (width/one-way/closures/speed-cap
+  admissibility, junction cross cost, deterministic ties, state-keyed cache).
+- U5 DES: deterministic event engine (heap + tombstones, `SimulationDeadlock`),
+  `QueueResource` / `SlotResource` / `DirectionZoneResource` (the three arbitration policies).
+- U6 haul cycle: `run_shift` (full load-haul-dump-return cycle, plan coupling via `PlanContext`,
+  loader migration with the advancing front), five baseline dispatch policies, per-segment
+  traffic traversal (slot capacity + FIFO no-overtake headway -> emergent bunching; junction and
+  direction-zone holds); `fast_mode` free-flow bypass.
+- Planning layer (U-P1..P4): `PitModel`/`Bench`/`DigBlock`, `MinePlan` with precedence
+  validation, mutable `PitState` (legality gate, exact depletion conservation, bench-completion
+  cascade with legacy spurs, snapshots), `NetworkOverlay` (two-tier revision protocol),
+  slope-damage resolution (severity ladder -> derates/closures), speed zones (MIN composition),
+  evaluation APIs (`pit_summary`, `reachability`, `plan_feasibility`).
+- U7 IO: cyclelog/v1 writer + faithful consumer-side validator, provenance JSON, PitTopoSpec
+  export with least-squares rim-ellipse fit, minetopo writer.
+- U8 scenarios: parametric open-pit geometry (`geometry/openpit.py` — perturbed-superellipse rim
+  with sector-boosted phases, bench rings by step-in, spiral / switchback / dual_spiral ramps
+  split into constant-grade segments, faces arc-tied to every ramp, ex-pit destinations behind a
+  shared junction trunk), `MineSpec` frozen scenario document (canonical JSON, `to_runtime()`,
+  `run()`), `generate_open_pit` / `generate_batch` sampling every structural axis with fleet
+  sizing to a target match factor, seven named validity gates + batch diversity signatures,
+  four presets. `Segment.single_lane_op` marks wide-vehicle single-lane ramps so they can join
+  DirectionZones.
+
 ## [0.01.000] — 2026-07-02
 
 ### Added

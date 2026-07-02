@@ -21,16 +21,38 @@ closed. `minehaulsim` fills that gap:
   a per-truck position trace, and topography exports for 3D viewers.
 - **numpy-only core.** Visualization is an opt-in extra; the core never imports matplotlib.
 
+## Scenario variety — the gallery
+
+Twelve scenarios from one `generate_batch(12, seed=2026)` call, every one passing the seven
+validity gates with a unique structural signature (full set + per-pit summaries in
+[`gallery/`](gallery/README.md); regenerate with `python scripts/gen_gallery.py`):
+
+![gallery contact sheet](gallery/gallery.png)
+
 ## Status
 
-Early alpha (`0.01.000`): scaffold + the determinism foundation (typed core + seeded stream
-manager). The layers land in verifiable units — see `CHANGELOG.md`.
+Early alpha (`0.03.000`): equipment + rimpull kinematics, constrained routing, deterministic DES
+with per-segment traffic (emergent bunching), the full haul cycle with five dispatch policies,
+a mine-planning layer (phases, depletion, slope damage, speed zones), the DispatchLab IO
+contracts, the varied open-pit generator, the viz extra and the CLI. The remaining layers land
+in verifiable units — see `CHANGELOG.md`.
 
 ## Install (dev)
 
 ```bash
 pip install -e ".[dev]"
 pytest
+```
+
+## CLI
+
+```bash
+minehaulsim generate --seed 42 --out out/     # validated spec JSON (+ plan SVG with [viz])
+minehaulsim batch --n 10 --seed 2026 --out samples/
+minehaulsim run --spec out/openpit-42.minespec.json --policy minqueue --out out/
+minehaulsim render --spec out/openpit-42.minespec.json --out out/
+minehaulsim validate out/mhs-openpit-42-minqueue.csv
+minehaulsim demo
 ```
 
 ## Honesty

@@ -2,6 +2,19 @@
 
 Display versions `X.XX.XXX` (PEP 440 normalized in pyproject). Tag every release `vX.XX.XXX`.
 
+## [0.03.000] — 2026-07-02
+
+### Added
+- U9 viz extra (`minehaulsim[viz]`, headless Agg by design): `viz/planview.py` (plan view from
+  the spec alone — rings re-derived from sampled rim params, ramps colored by kind with one-way
+  arrows, zoned ramps dashed, numbered faces / crushers / dumps / portals / junctions),
+  `viz/profile.py` (ramp grade profile per connected ramp chain + single-truck cycle Gantt).
+- U9 CLI (blueprint 4.5): `generate` (seed or preset, spec JSON + plan SVG), `batch`, `run`
+  (cyclelog/v1 + provenance + topo export, consumer-contract gated, `--fast` free-flow),
+  `render`, `validate` (.csv consumer rules / .json the 7 named gates), `demo`, `info`.
+- `scripts/gen_gallery.py`: the committed 12-seed gallery (SVG per pit + README + PNG contact
+  sheet) proving structural variety; `scripts/demo_offline.py` end-to-end.
+
 ## [0.02.000] — 2026-07-02
 
 Consolidates build units U2..U8 (each merged via its own PR; see the git history for the

@@ -202,7 +202,7 @@ def _assemble_spec(p: OpenPitParams, seed: int, design: OpenPitDesign,
     rim = geo_built.rings[0][:, :2]
     rim_rx, rim_ry = fit_ellipse_axes(rim, (0.0, 0.0))
     topo = {
-        "center": [0.0, 0.0], "rimRx": round(rim_rx, 1), "rimRy": round(rim_ry, 1),
+        "center": {"x": 0.0, "y": 0.0}, "rimRx": round(rim_rx, 1), "rimRy": round(rim_ry, 1),
         "nBenches": design.n_benches, "benchHeightM": design.bench_height_m,
         "benchWidthM": round(design.berm_width_m, 1),
         "faceAngleDeg": round(design.face_angle_deg, 1),

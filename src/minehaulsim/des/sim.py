@@ -20,14 +20,16 @@ RngManager streams: payload, loadtime, dumptime, policy.
 """
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field
 
-from ..equipment.catalog import LOADERS, TRUCKS, LoaderClass, TruckClass
+from ..equipment.catalog import LHDS, LOADERS, TRUCKS, LoaderClass, TruckClass
 from ..network.graph import RoadNetwork
 from ..network.routing import Router
 from ..rng import RngManager
 from .dispatch import DispatchPolicy, LoaderView, MineView, TruckView
 from .engine import Engine
+from .materials import OrePassRuntime, ShaftBinRuntime
 from .resources import QueueResource
 from .traversal import TrafficState
 
@@ -49,6 +51,32 @@ class TruckSpec:
     start_loader: int
 
 
+@dataclass(frozen=True)
+class LhdSpec:
+    """An underground LHD: digs its drawpoints round-robin, trams to its ore-pass tip, tips,
+    returns. Couples to the truck fleet ONLY through the pass inventory (U10)."""
+    lhd_id: int
+    unit_name: str                       # LHDS catalog key (LHD_14 / LHD_18)
+    drawpoints: tuple[int, ...]
+    tip_node: int
+    pass_id: int
+
+
+@dataclass(frozen=True)
+class OrePassSpec:
+    """Runtime ore-pass document: the chute node (a cyclelog shovel) + finite capacity."""
+    pass_id: int
+    chute_node: int
+    capacity_t: float
+
+
+@dataclass(frozen=True)
+class ShaftBinSpec:
+    node: int
+    capacity_t: float
+    hoist_tph: float
+
+
 @dataclass
 class ShiftResult:
     events: list[dict] = field(default_factory=list)     # cyclelog/v1 rows (t seconds, floats)
@@ -57,13 +85,17 @@ class ShiftResult:
     truck_wait_s: float = 0.0
     loader_wait_s: dict[int, float] = field(default_factory=dict)
     events_executed: int = 0
+    materials: dict = field(default_factory=dict)        # per-pass conservation + bin summary
 
 
 class _Sim:
     def __init__(self, net: RoadNetwork, loaders: list[LoaderSpec], dumps: list[int],
                  trucks: list[TruckSpec], policy: DispatchPolicy, seed: int,
                  plan_context=None, until_s: float = 8 * 3600.0,
-                 zones=None, junctions=None, fast_mode: bool = False) -> None:
+                 zones=None, junctions=None, fast_mode: bool = False,
+                 lhds: list[LhdSpec] | None = None,
+                 ore_passes: list[OrePassSpec] | None = None,
+                 shaft_bin: ShaftBinSpec | None = None) -> None:
         self.base_net = net
         self.plan = plan_context
         self.engine = Engine()
@@ -87,6 +119,21 @@ class _Sim:
         self.loader_busy_until: dict[int, float] = {ls.node_id: 0.0 for ls in loaders}
         self.inbound: dict[int, int] = {ls.node_id: 0 for ls in loaders}
         self.truck_pos: dict[int, int] = {}              # truck -> current node
+        # ---- underground material coupling (U10; all empty/None for open pits)
+        self.lhds = {sp.lhd_id: sp for sp in (lhds or [])}
+        self.passes: dict[int, OrePassRuntime] = {
+            op.pass_id: OrePassRuntime(op.pass_id, op.chute_node, op.capacity_t)
+            for op in (ore_passes or [])}
+        self._pass_by_chute: dict[int, OrePassRuntime] = {
+            p.chute_node: p for p in self.passes.values()}
+        # trucks parked UNDER a chute (holding its loading spot) until inventory covers them
+        self._chute_wait: dict[int, deque] = {p.chute_node: deque() for p in self.passes.values()}
+        # LHDs parked at a FULL pass tip, in arrival order
+        self._tip_wait: dict[int, deque] = {pid: deque() for pid in self.passes}
+        self._chute_payload: dict[int, float] = {}       # truck -> reserved chute payload
+        self._lhd_next_dp: dict[int, int] = {sp.lhd_id: 0 for sp in (lhds or [])}
+        self.bin = (ShaftBinRuntime(shaft_bin.node, shaft_bin.capacity_t, shaft_bin.hoist_tph)
+                    if shaft_bin else None)
 
     # ---- plan-aware network/router ----
     def _rebuild_router(self) -> None:
@@ -139,15 +186,20 @@ class _Sim:
     def _go(self, truck: TruckSpec, a: int, b: int, loaded: bool, payload: float,
             arrive_cb, *cb_args) -> bool:
         """Send a truck a->b: traffic traversal when enabled, else the free-flow single event."""
-        r = self._route(truck, a, b, loaded)
+        unit = TRUCKS[truck.unit_name]
+        return self._go_unit(unit, a, b, loaded, unit.empty_t + (payload if loaded else 0.0),
+                             arrive_cb, *cb_args)
+
+    def _go_unit(self, unit, a: int, b: int, loaded: bool, gvw: float,
+                 arrive_cb, *cb_args) -> bool:
+        """Unit-generic travel (trucks AND LHDs share the network + traffic rules)."""
+        closed, caps = self._routing_state()
+        r = self.router.route(a, b, unit, loaded=loaded, closed=closed, speed_caps=caps)
         if r is None:
             return False
         if self.traffic is None:
             self.engine.after(r.time_s, arrive_cb, *cb_args)
             return True
-        unit = TRUCKS[truck.unit_name]
-        gvw = unit.empty_t + (payload if loaded else 0.0)
-        _, caps = self._routing_state()
         self.traffic.traverse(unit, gvw, loaded, r, caps, lambda: arrive_cb(*cb_args))
         return True
 
@@ -197,6 +249,71 @@ class _Sim:
         payload = TRUCKS[truck.unit_name].payload_mean_t
         return math.ceil(payload / lc.pass_t) * lc.pass_time_s + lc.spot_time_s
 
+    # ---- the LHD loop (U10): dig -> tram to tip -> tip (or wait at a full pass) -> return ----
+    def _lhd_start(self, lid: int) -> None:
+        sp = self.lhds[lid]
+        self._lhd_dig(lid, sp.drawpoints[0])
+
+    def _lhd_dig(self, lid: int, dp: int) -> None:
+        sp = self.lhds[lid]
+        unit = LHDS[sp.unit_name]
+        rng = self.rng.stream("lhd.dig")
+        dig_s = float(unit.dig_time_s * rng.lognormal(
+            mean=-0.5 * unit.dig_time_cv ** 2, sigma=unit.dig_time_cv))
+        self.engine.after(dig_s, self._lhd_to_tip, lid, dp)
+
+    def _lhd_to_tip(self, lid: int, dp: int) -> None:
+        sp = self.lhds[lid]
+        unit = LHDS[sp.unit_name]
+        bkt = self.rng.stream("lhd.bucket")
+        bucket = float(max(0.5 * unit.bucket_t,
+                           min(unit.bucket_t + 3 * unit.bucket_sd_t,
+                               bkt.normal(unit.bucket_t, unit.bucket_sd_t))))
+        if not self._go_unit(unit, dp, sp.tip_node, True, unit.empty_t + bucket,
+                             self._lhd_at_tip, lid, dp, bucket):
+            raise RuntimeError(f"LHD {lid}: no route {dp}->{sp.tip_node}")
+
+    def _lhd_at_tip(self, lid: int, dp: int, bucket: float) -> None:
+        sp = self.lhds[lid]
+        p = self.passes[sp.pass_id]
+        if not p.can_tip(bucket):
+            self._tip_wait[sp.pass_id].append((lid, dp, bucket))   # full pass parks the LHD
+            return
+        p.tip(bucket)
+        self._settle(sp.pass_id)
+        self._lhd_after_tip(lid)
+
+    def _lhd_after_tip(self, lid: int) -> None:
+        """Tip committed: return empty and dig the next drawpoint round-robin."""
+        sp = self.lhds[lid]
+        self._lhd_next_dp[lid] = (self._lhd_next_dp[lid] + 1) % len(sp.drawpoints)
+        nxt = sp.drawpoints[self._lhd_next_dp[lid]]
+        unit = LHDS[sp.unit_name]
+        if not self._go_unit(unit, sp.tip_node, nxt, False, unit.empty_t,
+                             self._lhd_dig, lid, nxt):
+            raise RuntimeError(f"LHD {lid}: no route {sp.tip_node}->{nxt}")
+
+    def _settle(self, pass_id: int) -> None:
+        """Serve both wait queues of a pass, FIFO, iteratively (no recursion): trucks parked
+        under the chute while inventory covers them; then LHDs parked at the full tip while
+        their bucket fits; repeat until neither head can be served."""
+        p = self.passes[pass_id]
+        chute_w = self._chute_wait[p.chute_node]
+        tip_w = self._tip_wait[pass_id]
+        progress = True
+        while progress:
+            progress = False
+            while chute_w and p.can_draw(chute_w[0][1]):
+                tid, payload, resume = chute_w.popleft()
+                p.draw(payload)
+                resume()
+                progress = True
+            while tip_w and p.can_tip(tip_w[0][2]):
+                lid, _dp, bucket = tip_w.popleft()
+                p.tip(bucket)
+                self._lhd_after_tip(lid)
+                progress = True
+
     # ---- the cycle ----
     def start(self) -> None:
         stagger = self.rng.stream("init")
@@ -204,6 +321,8 @@ class _Sim:
             t = self.trucks[tid]
             self.truck_pos[tid] = t.start_loader
             self.engine.schedule(float(stagger.uniform(0.0, 60.0)), self._go_load, tid, t.start_loader)
+        for lid in sorted(self.lhds):
+            self.engine.schedule(float(stagger.uniform(0.0, 60.0)), self._lhd_start, lid)
 
     def _emit(self, t: float, truck: int, node: int, event: str, payload: float) -> None:
         self.result.events.append({"t": t, "truck_id": truck, "shovel_id": node,
@@ -222,13 +341,7 @@ class _Sim:
         q = self.loader_q[loader]
         arrive_t = self.engine.now
 
-        def granted() -> None:
-            if self.plan is not None and not self.plan.is_diggable(loader):
-                # face became non-diggable while queued: release the spot and redispatch empty
-                q.release()
-                self._dispatch_next(tid, loader)
-                return
-            self.result.truck_wait_s += self.engine.now - arrive_t
+        def start_loading() -> None:
             truck = self.trucks[tid]
             ls = self.loader_specs[loader]
             mean = self._load_mean_s(ls, truck)
@@ -239,14 +352,50 @@ class _Sim:
             self.loader_busy_until[loader] = self.engine.now + load_s
             self.engine.after(load_s, self._loaded, tid, loader)
 
+        def granted() -> None:
+            if self.plan is not None and not self.plan.is_diggable(loader):
+                # face became non-diggable while queued: release the spot and redispatch empty
+                q.release()
+                self._dispatch_next(tid, loader)
+                return
+            self.result.truck_wait_s += self.engine.now - arrive_t
+            p = self._pass_by_chute.get(loader)
+            if p is None:
+                start_loading()
+                return
+            # CHUTE (U10): the payload is drawn from the ore-pass inventory. Reserve it at grant;
+            # an empty pass parks the truck UNDER the chute (holding the spot — the physical
+            # reality) until LHD tips cover it (FIFO via _settle).
+            unit: TruckClass = TRUCKS[self.trucks[tid].unit_name]
+            pay_rng = self.rng.stream("payload")
+            payload = float(max(0.5 * unit.payload_mean_t,
+                                min(400.0, pay_rng.normal(unit.payload_mean_t, unit.payload_sd_t))))
+            self._chute_payload[tid] = payload
+            grant_t = self.engine.now
+
+            def resume() -> None:
+                self.result.truck_wait_s += self.engine.now - grant_t
+                start_loading()
+
+            if p.can_draw(payload):
+                p.draw(payload)
+                self._settle(p.pass_id)                  # freed capacity may unblock tipping LHDs
+                start_loading()
+            else:
+                self._chute_wait[loader].append((tid, payload, resume))
+
         q.request(granted)
 
     def _loaded(self, tid: int, loader: int) -> None:
         truck = self.trucks[tid]
         unit: TruckClass = TRUCKS[truck.unit_name]
-        pay_rng = self.rng.stream("payload")
-        payload = float(max(0.5 * unit.payload_mean_t,
-                            min(400.0, pay_rng.normal(unit.payload_mean_t, unit.payload_sd_t))))
+        reserved = self._chute_payload.pop(tid, None)
+        if reserved is not None:
+            payload = reserved                           # chute: drawn from the pass at grant
+        else:
+            pay_rng = self.rng.stream("payload")
+            payload = float(max(0.5 * unit.payload_mean_t,
+                                min(400.0, pay_rng.normal(unit.payload_mean_t, unit.payload_sd_t))))
         # QUOTE the outbound route BEFORE depleting: if this load completes the bench, the face
         # spur retires — but the truck physically leaves on the geometry it arrived on (design P4:
         # in-flight legs finish on the old geometry).
@@ -274,12 +423,30 @@ class _Sim:
         q = self.dump_q[dump]
         arrive_t = self.engine.now
 
-        def granted() -> None:
-            self.result.truck_wait_s += self.engine.now - arrive_t
+        def do_dump() -> None:
             dt = self.rng.stream("dumptime")
             dump_s = float(NOMINAL_DUMP_MEAN_S * dt.lognormal(mean=-0.5 * DUMP_CV * DUMP_CV, sigma=DUMP_CV))
             self._emit(self.engine.now, tid, dump, "dump", payload)
             self.engine.after(dump_s, self._dumped, tid, dump, payload)
+
+        def granted() -> None:
+            self.result.truck_wait_s += self.engine.now - arrive_t
+            if self.bin is not None and dump == self.bin.node:
+                # SHAFT BIN (U10): hoisting drains the bin continuously; a full bin makes the
+                # truck hold the dump spot for the EXACT closed-form time until space exists.
+                wait = self.bin.wait_for_space_s(self.engine.now, payload)
+
+                def bin_dump() -> None:
+                    self.result.truck_wait_s += wait
+                    self.bin.dump(self.engine.now, payload)
+                    do_dump()
+
+                if wait > 0.0:
+                    self.engine.after(wait, bin_dump)
+                else:
+                    bin_dump()
+                return
+            do_dump()
 
         q.request(granted)
 
@@ -311,15 +478,29 @@ class _Sim:
         self.result.events_executed = self.engine.events_executed
         for nid, q in self.loader_q.items():
             self.result.loader_wait_s[nid] = q.total_wait_s
+        for pid, p in sorted(self.passes.items()):
+            self.result.materials[f"pass_{pid}"] = p.summary()
+        if self.passes:
+            # tonnes drawn from a pass by trucks still LOADING at cutoff (their 'haul' event
+            # never fired) — the term that closes the conservation balance
+            self.result.materials["chute_in_flight_t"] = round(
+                sum(self._chute_payload.values()), 6)
+        if self.bin is not None:
+            self.result.materials["shaft_bin"] = self.bin.summary(self.engine.now)
         return self.result
 
 
 def run_shift(net: RoadNetwork, loaders: list[LoaderSpec], dumps: list[int],
               trucks: list[TruckSpec], policy: DispatchPolicy, seed: int,
               plan_context=None, until_s: float = 8 * 3600.0,
-              zones=None, junctions=None, fast_mode: bool = False) -> ShiftResult:
+              zones=None, junctions=None, fast_mode: bool = False,
+              lhds: list[LhdSpec] | None = None,
+              ore_passes: list[OrePassSpec] | None = None,
+              shaft_bin: ShaftBinSpec | None = None) -> ShiftResult:
     """Simulate one shift; returns the cyclelog events + KPIs. Deterministic in (inputs, seed).
     Traffic (per-segment slots + no-overtake headway + direction zones + junctions) is ON by
-    default; fast_mode=True bypasses it for quick statistical runs (free-flow times)."""
+    default; fast_mode=True bypasses it for quick statistical runs (free-flow times).
+    Underground (U10): pass `lhds` + `ore_passes` (and optionally `shaft_bin`) to couple an LHD
+    fleet to the truck fleet through ore-pass inventories; open-pit runs leave them None."""
     return _Sim(net, loaders, dumps, trucks, policy, seed, plan_context, until_s,
-                zones, junctions, fast_mode).run()
+                zones, junctions, fast_mode, lhds, ore_passes, shaft_bin).run()

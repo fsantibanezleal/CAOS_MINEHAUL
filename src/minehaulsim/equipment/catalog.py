@@ -120,6 +120,12 @@ LOADERS: dict[str, LoaderClass] = {
     "SHOVEL_25": LoaderClass("SHOVEL_25", pass_t=25.0, pass_time_s=35.0, time_cv=0.18, spot_time_s=30.0),
     "SHOVEL_45": LoaderClass("SHOVEL_45", pass_t=45.0, pass_time_s=38.0, time_cv=0.18, spot_time_s=30.0),
     "WHEEL_LOADER_18": LoaderClass("WHEEL_LOADER_18", pass_t=18.0, pass_time_s=42.0, time_cv=0.22, spot_time_s=25.0),
+    # underground loading points (U10). CHUTE: gravity loading from an ore-pass inventory
+    # (~25 t per gate opening, fast). LHD_*_LOADING: an LHD shuttle-loading a truck at a drift
+    # stub — pass time INCLUDES the short drawpoint->stub tram, hence the ~2 min per pass.
+    "CHUTE": LoaderClass("CHUTE", pass_t=25.0, pass_time_s=28.0, time_cv=0.12, spot_time_s=20.0),
+    "LHD_14_LOADING": LoaderClass("LHD_14_LOADING", pass_t=14.0, pass_time_s=110.0, time_cv=0.25, spot_time_s=25.0),
+    "LHD_18_LOADING": LoaderClass("LHD_18_LOADING", pass_t=18.0, pass_time_s=105.0, time_cv=0.25, spot_time_s=25.0),
 }
 
 LHDS: dict[str, LhdClass] = {

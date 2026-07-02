@@ -2,6 +2,22 @@
 
 Display versions `X.XX.XXX` (PEP 440 normalized in pyproject). Tag every release `vX.XX.XXX`.
 
+## [0.04.000] — 2026-07-02
+
+### Added
+- U10 underground: `geometry/underground.py` (multi-level solids — spiral/zigzag declines with
+  passing bays splitting every span into a DirectionZone, capacity-1 drift zones with drawpoint
+  fans, ore-pass tips + haulage chutes, optional shaft bin, zigzag turns as capacity-1
+  junctions), `des/materials.py` (`OrePassRuntime` with exact conservation, `ShaftBinRuntime`
+  with closed-form hoist-drain waits), LHD agents in the DES (dig -> tram -> tip -> return;
+  a full pass parks the LHD, an empty pass parks the loading truck under the chute — the two
+  fleets couple ONLY through inventory), `scenarios/underground_gen.py` (all axes sampled,
+  three flow modes: lhd_orepass_truck / truck_direct / truck_shaft; fleet sized to target MF),
+  MineSpec carries `lhds` + `materials` (additive, schema unchanged) and a `minetopo/v1` topo
+  payload; UG loading classes (CHUTE, LHD_x_LOADING) in the catalog.
+- ShiftResult.materials: per-pass conservation summaries (+ the in-flight loading term that
+  closes the balance at cutoff) and the shaft-bin hoist summary.
+
 ## [0.03.000] — 2026-07-02
 
 ### Added

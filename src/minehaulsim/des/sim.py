@@ -29,12 +29,14 @@ from ..network.routing import Router
 from ..rng import RngManager
 from .dispatch import DispatchPolicy, LoaderView, MineView, TruckView
 from .engine import Engine
+from .failures import FailureConfig, FailureState
 from .materials import OrePassRuntime, ShaftBinRuntime
 from .resources import QueueResource
 from .traversal import TrafficState
 
 NOMINAL_DUMP_MEAN_S = 55.0
 DUMP_CV = 0.15
+CLOSURE_RETRY_S = 300.0     # parked-by-closure trucks re-ask for a route this often
 
 
 @dataclass(frozen=True)
@@ -86,6 +88,7 @@ class ShiftResult:
     loader_wait_s: dict[int, float] = field(default_factory=dict)
     events_executed: int = 0
     materials: dict = field(default_factory=dict)        # per-pass conservation + bin summary
+    downtime: dict = field(default_factory=dict)         # failures: per-unit repair seconds
 
 
 class _Sim:
@@ -95,7 +98,8 @@ class _Sim:
                  zones=None, junctions=None, fast_mode: bool = False,
                  lhds: list[LhdSpec] | None = None,
                  ore_passes: list[OrePassSpec] | None = None,
-                 shaft_bin: ShaftBinSpec | None = None) -> None:
+                 shaft_bin: ShaftBinSpec | None = None,
+                 failures: FailureConfig | None = None) -> None:
         self.base_net = net
         self.plan = plan_context
         self.engine = Engine()
@@ -134,6 +138,16 @@ class _Sim:
         self._lhd_next_dp: dict[int, int] = {sp.lhd_id: 0 for sp in (lhds or [])}
         self.bin = (ShaftBinRuntime(shaft_bin.node, shaft_bin.capacity_t, shaft_bin.hoist_tph)
                     if shaft_bin else None)
+        # ---- failure processes (U11; None = perfect equipment, the default)
+        self.failures: FailureState | None = None
+        if failures is not None:
+            self.failures = FailureState(config=failures,
+                                         rng_truck=self.rng.stream("fail.truck"),
+                                         rng_loader=self.rng.stream("fail.loader"))
+            for t in trucks:
+                self.failures.init_truck(t.truck_id)
+            for ls in loaders:
+                self.failures.init_loader(ls.node_id)
 
     # ---- plan-aware network/router ----
     def _rebuild_router(self) -> None:
@@ -181,7 +195,14 @@ class _Sim:
     def _route(self, truck: TruckSpec, a: int, b: int, loaded: bool):
         closed, caps = self._routing_state()
         unit = TRUCKS[truck.unit_name]
-        return self.router.route(a, b, unit, loaded=loaded, closed=closed, speed_caps=caps)
+        return self.router.route(a, b, unit, loaded=loaded, closed=self._closed_now(closed),
+                                 speed_caps=caps)
+
+    def _closed_now(self, closed: frozenset[int]) -> frozenset[int]:
+        """Overlay closures + any active maintenance-window closures (failures config)."""
+        if self.failures is None or not self.failures.config.closures:
+            return closed
+        return closed | self.failures.closed_segments(self.engine.now)
 
     def _go(self, truck: TruckSpec, a: int, b: int, loaded: bool, payload: float,
             arrive_cb, *cb_args) -> bool:
@@ -194,6 +215,7 @@ class _Sim:
                  arrive_cb, *cb_args) -> bool:
         """Unit-generic travel (trucks AND LHDs share the network + traffic rules)."""
         closed, caps = self._routing_state()
+        closed = self._closed_now(closed)
         r = self.router.route(a, b, unit, loaded=loaded, closed=closed, speed_caps=caps)
         if r is None:
             return False
@@ -342,6 +364,13 @@ class _Sim:
         arrive_t = self.engine.now
 
         def start_loading() -> None:
+            # U11: loader downtime surfaces at service start — the granted truck WAITS at the
+            # face through the repair (dispatch sees it via est_free_s in the MineView)
+            if self.failures is not None and self.failures.loader_due(loader, self.engine.now):
+                rep = self.failures.loader_repair_s(loader, self.engine.now)
+                self.loader_busy_until[loader] = self.engine.now + rep
+                self.engine.after(rep, start_loading)
+                return
             truck = self.trucks[tid]
             ls = self.loader_specs[loader]
             mean = self._load_mean_s(ls, truck)
@@ -396,12 +425,21 @@ class _Sim:
             pay_rng = self.rng.stream("payload")
             payload = float(max(0.5 * unit.payload_mean_t,
                                 min(400.0, pay_rng.normal(unit.payload_mean_t, unit.payload_sd_t))))
+        self._depart_loaded(tid, loader, payload)
+
+    def _depart_loaded(self, tid: int, loader: int, payload: float) -> None:
+        """Payload is FINAL here; retry-safe (a closure window may hold the loaded truck at the
+        face — it keeps the loader spot, which is the physical reality of a blocked ramp)."""
+        truck = self.trucks[tid]
         # QUOTE the outbound route BEFORE depleting: if this load completes the bench, the face
         # spur retires — but the truck physically leaves on the geometry it arrived on (design P4:
         # in-flight legs finish on the old geometry).
         mv = self._mine_view(truck, loader)
         dump = self.policy.next_dump(TruckView(tid, truck.unit_name, truck.start_loader), mv)
         if self._route(truck, loader, dump, loaded=True) is None:
+            if self.failures is not None and self.failures.config.closures:
+                self.engine.after(CLOSURE_RETRY_S, self._depart_loaded, tid, loader, payload)
+                return
             raise RuntimeError(f"no loaded route {loader}->{dump} for truck {tid}")
         if self.plan is not None:
             # couple sim tonnes to depletion EXACTLY: the cyclelog records what the model YIELDED
@@ -458,6 +496,12 @@ class _Sim:
         self._dispatch_next(tid, dump)
 
     def _dispatch_next(self, tid: int, at_node: int) -> None:
+        # U11: breakdowns materialize at the cycle boundary — the truck finished its leg and
+        # parks HERE for the repair (v1 semantics: no mid-segment blocking, documented)
+        if self.failures is not None and self.failures.truck_due(tid, self.engine.now):
+            rep = self.failures.truck_repair_s(tid, self.engine.now)
+            self.engine.after(rep, self._dispatch_next, tid, at_node)
+            return
         truck = self.trucks[tid]
         mv = self._mine_view(truck, at_node)
         try:
@@ -466,7 +510,11 @@ class _Sim:
             return                                       # plan exhausted: park the truck
         tt = mv.eta_s.get((tid, loader))
         if tt is None or tt == float("inf"):
-            return                                       # unreachable (severed): park
+            # unreachable: a maintenance window may reopen the road — retry then. A severed
+            # plan/damage closure has no window, so without closures the truck stays parked.
+            if self.failures is not None and self.failures.config.closures:
+                self.engine.after(CLOSURE_RETRY_S, self._dispatch_next, tid, at_node)
+            return
         self.inbound[loader] += 1
         if not self._go(truck, at_node, loader, False, 0.0, self._go_load, tid, loader):
             self.inbound[loader] = max(0, self.inbound[loader] - 1)
@@ -487,6 +535,13 @@ class _Sim:
                 sum(self._chute_payload.values()), 6)
         if self.bin is not None:
             self.result.materials["shaft_bin"] = self.bin.summary(self.engine.now)
+        if self.failures is not None:
+            self.result.downtime = {
+                "truck_s": {k: round(v, 3) for k, v in
+                            sorted(self.failures.truck_downtime_s.items()) if v > 0},
+                "loader_s": {k: round(v, 3) for k, v in
+                             sorted(self.failures.loader_downtime_s.items()) if v > 0},
+            }
         return self.result
 
 
@@ -496,11 +551,14 @@ def run_shift(net: RoadNetwork, loaders: list[LoaderSpec], dumps: list[int],
               zones=None, junctions=None, fast_mode: bool = False,
               lhds: list[LhdSpec] | None = None,
               ore_passes: list[OrePassSpec] | None = None,
-              shaft_bin: ShaftBinSpec | None = None) -> ShiftResult:
+              shaft_bin: ShaftBinSpec | None = None,
+              failures: FailureConfig | None = None) -> ShiftResult:
     """Simulate one shift; returns the cyclelog events + KPIs. Deterministic in (inputs, seed).
     Traffic (per-segment slots + no-overtake headway + direction zones + junctions) is ON by
     default; fast_mode=True bypasses it for quick statistical runs (free-flow times).
     Underground (U10): pass `lhds` + `ore_passes` (and optionally `shaft_bin`) to couple an LHD
-    fleet to the truck fleet through ore-pass inventories; open-pit runs leave them None."""
+    fleet to the truck fleet through ore-pass inventories; open-pit runs leave them None.
+    Failures (U11): pass a `FailureConfig` for breakdowns / loader downtime / closure windows;
+    None (the default) = perfect equipment."""
     return _Sim(net, loaders, dumps, trucks, policy, seed, plan_context, until_s,
-                zones, junctions, fast_mode, lhds, ore_passes, shaft_bin).run()
+                zones, junctions, fast_mode, lhds, ore_passes, shaft_bin, failures).run()

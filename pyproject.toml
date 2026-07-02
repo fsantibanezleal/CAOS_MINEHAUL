@@ -1,0 +1,44 @@
+[project]
+name = "minehaulsim"
+version = "0.1.0"
+description = "Deterministic discrete-event simulation of open-pit and underground mine haulage on constrained road networks, with seeded parametric mine generators"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Felipe Santibanez-Leal" }]
+keywords = ["mining", "simulation", "discrete-event", "haulage", "open-pit", "underground", "dispatch", "fleet", "rimpull", "DES"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+]
+dependencies = ["numpy>=1.26"]
+
+[project.urls]
+Repository = "https://github.com/fsantibanezleal/CAOS_MINEHAUL"
+
+[project.optional-dependencies]
+viz = ["matplotlib>=3.8"]
+dev = ["pytest>=8", "ruff>=0.4", "matplotlib>=3.8"]
+all = ["minehaulsim[viz]"]
+
+[project.scripts]
+minehaulsim = "minehaulsim_cli.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

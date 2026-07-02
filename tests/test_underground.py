@@ -139,6 +139,25 @@ def test_empty_pass_parks_trucks_until_lhds_deliver():
     assert first_load > 0.0                               # zero inventory cannot load at t=0
 
 
+def test_zone_policy_ordering_loaded_priority_vs_lockout():
+    """Blueprint U10 verify (Queen's 2016 qualitative result): on a decline with opposing
+    loaded/empty traffic, loaded_priority arbitration moves AT LEAST as many tonnes as strict
+    lockout — priority to climbing loaded trucks cannot lose throughput on the reference spec."""
+    import dataclasses
+    spec = generate_underground(
+        UndergroundParams(flow_mode="truck_direct", n_levels=6, decline_style="spiral",
+                          zone_policy="lockout", target_match_factor=1.2), seed=8)
+
+    def with_policy(policy: str) -> MineSpec:
+        zones = tuple({**z, "policy": policy} for z in spec.zones)
+        return dataclasses.replace(spec, zones=zones)
+
+    res_lp = with_policy("loaded_priority").run(MinQueuePolicy(), seed=6, until_s=4 * 3600.0)
+    res_lo = with_policy("lockout").run(MinQueuePolicy(), seed=6, until_s=4 * 3600.0)
+    assert res_lp.tonnes > 0 and res_lo.tonnes > 0
+    assert res_lp.tonnes >= res_lo.tonnes
+
+
 # ---- generator acceptance ----
 
 @pytest.mark.parametrize("seed", range(30))

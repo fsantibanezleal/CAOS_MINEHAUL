@@ -79,12 +79,17 @@ def _sample_design(p: UndergroundParams, geo: np.random.Generator) -> Undergroun
     if flow == "truck_shaft":
         shaft = True
 
+    # truck_direct: every drift stub is a LOADING point (a cyclelog shovel needing its own LHD
+    # + truck stream over ONE decline) — one active heading per level keeps the match factor
+    # physically reachable. LHD flows concentrate loading at 1..3 chutes, so multiple drifts
+    # per level are fine there.
+    max_drifts = 2 if flow == "truck_direct" else 5
     levels = tuple(
         LevelSpec(drifts=tuple(
             DriftSpec(length_m=float(geo.uniform(80.0, 350.0)),
                       n_drawpoints=int(geo.integers(1, 4)),
                       azimuth_rad=float(geo.uniform(0.0, 2 * math.pi)))
-            for _ in range(int(geo.integers(1, 5)))))
+            for _ in range(int(geo.integers(1, max_drifts)))))
         for _ in range(n_levels))
 
     passes: tuple[GeoOrePassSpec, ...] = ()

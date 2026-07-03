@@ -1,5 +1,9 @@
 # minehaulsim
 
+[![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/CAOS_MINEHAUL/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/CAOS_MINEHAUL/actions)
+[![License](https://img.shields.io/github/license/fsantibanezleal/CAOS_MINEHAUL)](LICENSE)
+[![Version](https://img.shields.io/github/v/tag/fsantibanezleal/CAOS_MINEHAUL?label=version&sort=semver)](https://github.com/fsantibanezleal/CAOS_MINEHAUL/tags)
+
 **Deterministic discrete-event simulation of open-pit and underground mine haulage on constrained
 road networks, with seeded parametric mine generators.**
 

@@ -1,6 +1,6 @@
 [project]
 name = "minehaulsim"
-version = "0.10.0"
+version = "0.11.0"
 description = "Deterministic discrete-event simulation of open-pit and underground mine haulage on constrained road networks, with seeded parametric mine generators"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -24,8 +24,9 @@ Issues = "https://github.com/fsantibanezleal/CAOS_MINEHAUL/issues"
 
 [project.optional-dependencies]
 viz = ["matplotlib>=3.8"]
-dev = ["pytest>=8", "ruff>=0.4", "matplotlib>=3.8"]
-all = ["minehaulsim[viz]"]
+geology = ["oreblocks>=0.1.0"]
+dev = ["pytest>=8", "ruff>=0.4", "matplotlib>=3.8", "oreblocks>=0.1.0"]
+all = ["minehaulsim[viz,geology]"]
 
 [project.scripts]
 minehaulsim = "minehaulsim_cli.__main__:main"

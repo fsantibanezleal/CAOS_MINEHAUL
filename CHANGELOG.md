@@ -2,6 +2,24 @@
 
 Display versions `X.XX.XXX` (PEP 440 normalized in pyproject). Tag every release `vX.XX.XXX`.
 
+## [0.11.000] — 2026-07-03
+
+### Added — geology attachment (U15, the oreblocks bridge)
+- **`attach_geology(spec)`** (`minehaulsim.scenarios.geology`, extra **`[geology]`** → the
+  `oreblocks` package): grounds an open-pit scenario in a seeded MineLib-nature block model.
+  A bench-aligned deposit (archetype porphyry/vein/layered/core_halo) is generated, the EXACT
+  ultimate pit is solved (max-closure), and every loader is stamped with the geology of ITS OWN
+  bench (per `topo.shovelBench`): `face_bench`, `face_grade`, `face_ore_fraction`,
+  `face_level_tonnes`. The spec gains `materials["geology"]` (`minehaulsim.geology/v1`): grid,
+  econ, cutoff, per-level in-pit statistics and the stamped exact pit value — auditable and
+  deterministic in (spec, archetype, seed).
+- CLI: `minehaulsim generate --geology porphyry` prints the stamped pit value + cutoff and writes
+  the geology-carrying spec.
+- Honest scope stated in-module: the vertical axis matches the pit's benches; the horizontal
+  footprint is generic (per-bench statistics of the exact pit, not a voxel match of the
+  superellipse). Backward compatible: `LoaderSpec` ignores the extra keys; cyclelog/v1 unchanged
+  (per-face grade columns land with the DispatchLab regeneration, CAOS_DispatchLab #50).
+
 ## [0.10.000] — 2026-07-02
 
 First published release (PyPI, trusted publishing).

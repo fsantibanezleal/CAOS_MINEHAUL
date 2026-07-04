@@ -64,6 +64,12 @@ def _maybe_render(spec: MineSpec, out: Path) -> list[Path]:
 
 def cmd_generate(args: argparse.Namespace) -> int:
     spec = load_preset(args.preset) if args.preset else generate_open_pit(seed=args.seed)
+    if getattr(args, "geology", None):
+        from minehaulsim.scenarios import attach_geology
+        spec = attach_geology(spec, archetype=args.geology)
+        g = spec.materials["geology"]
+        print(f"  geology: {g['archetype']} (seed {g['seed']}) · exact pit value "
+              f"{g['stamped_pit_value']:.0f} · cutoff {g['cutoff_grade']:.5f}")
     print(_spec_summary(spec))
     if args.out:
         out = Path(args.out)
@@ -177,6 +183,9 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--seed", type=int, default=0)
     g.add_argument("--preset", choices=preset_names())
     g.add_argument("--out", help="directory for the spec JSON (+ plan SVG with [viz])")
+    g.add_argument("--geology", choices=["porphyry", "vein", "layered", "core_halo"],
+                   help="attach a bench-aligned oreblocks deposit: per-shovel face grade / "
+                        "ore-fraction + the exact-pit provenance (needs [geology])")
 
     b = sub.add_parser("batch", help="generate n structurally diverse scenarios")
     b.add_argument("--n", type=int, default=10)

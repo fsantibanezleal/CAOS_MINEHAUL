@@ -35,7 +35,8 @@ def test_run_exports_contract_passing_artifacts(tmp_path, capsys):
     assert sample.exists() and prov.exists() and topo.exists()
     tp = json.loads(topo.read_text(encoding="utf-8"))
     assert set(tp.keys()) == {"center", "rimRx", "rimRy", "nBenches", "benchHeightM",
-                              "benchWidthM", "faceAngleDeg", "rampWidthM", "shovelBench"}
+                              "benchWidthM", "faceAngleDeg", "rampWidthM", "shovelBench", "roads"}
+    assert tp["roads"]["schema"] == "minehaulsim.roads/v1" and tp["roads"]["segments"]
     # the exported csv passes the validate subcommand too (exit 0)
     assert cli(["validate", str(sample)]) == 0
 

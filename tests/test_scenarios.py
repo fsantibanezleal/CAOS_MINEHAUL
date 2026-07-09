@@ -73,7 +73,9 @@ def test_generated_cyclelog_ids_honor_the_contract():
     assert [t["truck_id"] for t in spec.trucks] == list(range(1, len(spec.trucks) + 1))
     # topo carries the exact consumer key set
     assert set(spec.topo.keys()) == {"center", "rimRx", "rimRy", "nBenches", "benchHeightM",
-                                     "benchWidthM", "faceAngleDeg", "rampWidthM", "shovelBench"}
+                                     "benchWidthM", "faceAngleDeg", "rampWidthM", "shovelBench",
+                                     "roads"}
+    assert spec.topo["roads"]["schema"] == "minehaulsim.roads/v1"
     assert set(spec.topo["shovelBench"]) == {str(x["node_id"]) for x in spec.loaders}
 
 

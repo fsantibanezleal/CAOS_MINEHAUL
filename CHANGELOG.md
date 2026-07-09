@@ -2,6 +2,19 @@
 
 Display versions `X.XX.XXX` (PEP 440 normalized in pyproject). Tag every release `vX.XX.XXX`.
 
+## [0.12.000] — 2026-07-09
+
+### Added — road network in the topo export (U16, the DispatchLab 3D bridge, #28)
+- **`write_pit_topo_spec(..., network=, headway_m=, headway_s=)`** now emits an optional
+  `roads` block (`minehaulsim.roads/v1`): the REAL constrained road network as JSON, so a 3D
+  consumer (DispatchLab) renders the ACTUAL generated roads and can mirror the per-segment
+  car-following / no-overtake traffic model instead of re-deriving a straight-line approximation.
+  - `nodes` (id, kind, pos), `segments` (id, a, b, polyline, oneWay, speedLimitKmh,
+    rollingResistancePct, zoneId), `traffic` (headwayM, headwayS).
+  - New public helper `minehaulsim.io.road_network_block(network, headway_m=, headway_s=)`.
+- Backward compatible: with no `network=`, `roads` is absent and the exact PitTopoSpec key set is
+  unchanged (existing consumers see no diff). Docs: `data-contract/02` updated; two new io tests.
+
 ## [0.11.000] — 2026-07-03
 
 ### Added — geology attachment (U15, the oreblocks bridge)

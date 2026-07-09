@@ -25,7 +25,8 @@ import numpy as np
 
 from ..geometry.openpit import (FLOOR_R_MIN_M, OpenPitDesign, PitGeometryError, RimShape,
                                 build_open_pit)
-from ..io.topospec import fit_ellipse_axes
+from ..des.traversal import HEADWAY_S
+from ..io.topospec import fit_ellipse_axes, road_network_block
 from ..network.constraints import ZonePolicy
 from ..rng import RngManager
 from .spec import MineSpec
@@ -208,6 +209,9 @@ def _assemble_spec(p: OpenPitParams, seed: int, design: OpenPitDesign,
         "faceAngleDeg": round(design.face_angle_deg, 1),
         "rampWidthM": design.ramp_width_m,
         "shovelBench": {str(fid): b for fid, b in sorted(geo_built.shovel_bench.items())},
+        # carry the REAL road network so the 3D consumer renders the actual roads + can mirror the
+        # per-segment car-following traffic model (#28); headway defaults match des.traversal.
+        "roads": road_network_block(net, headway_m=80.0, headway_s=HEADWAY_S),
     }
     params = {
         "n_benches": design.n_benches, "bench_height_m": design.bench_height_m,

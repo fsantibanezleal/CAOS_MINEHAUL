@@ -86,3 +86,35 @@ def test_pit_topo_spec_ellipse_fit_recovers_known_axes(tmp_path):
                                 "benchWidthM", "faceAngleDeg", "rampWidthM", "shovelBench"}
     rx, ry = fit_ellipse_axes(rim, (50.0, -20.0))
     assert rx > ry
+
+
+def test_pit_topo_spec_carries_the_road_network(tmp_path):
+    # with a network passed, the topo.json gains the minehaulsim.roads/v1 block so a 3D consumer
+    # renders the REAL roads + can mirror the segment traffic model (#28). Without it, unchanged.
+    net = _net()
+    th = np.linspace(0, 2 * np.pi, 64, endpoint=False)
+    rim = np.stack([500 * np.cos(th), 400 * np.sin(th)], axis=1)
+    spec = write_pit_topo_spec(tmp_path / "s.topo.json", center=(0.0, 0.0), rim_xy=rim,
+                               n_benches=6, bench_height_m=15.0, bench_width_m=12.0,
+                               face_angle_deg=65.0, ramp_width_m=25.0, shovel_bench={1: 3, 2: 5},
+                               network=net, headway_m=80.0, headway_s=9.0)
+    roads = spec["roads"]
+    assert roads["schema"] == "minehaulsim.roads/v1"
+    assert {n["id"] for n in roads["nodes"]} == {1, 2, 200}
+    assert {n["kind"] for n in roads["nodes"]} == {"face", "crusher"}
+    assert len(roads["segments"]) == 2
+    seg = roads["segments"][0]
+    assert set(seg) >= {"id", "a", "b", "polyline", "oneWay", "speedLimitKmh", "zoneId"}
+    assert seg["speedLimitKmh"] == 50.0
+    assert len(seg["polyline"]) >= 2 and len(seg["polyline"][0]) == 3
+    assert roads["traffic"] == {"headwayM": 80.0, "headwayS": 9.0}
+    assert (tmp_path / "s.topo.json").exists()   # wrote without a JSON-serialization error
+
+
+def test_pit_topo_spec_without_network_is_unchanged(tmp_path):
+    th = np.linspace(0, 2 * np.pi, 48, endpoint=False)
+    rim = np.stack([300 * np.cos(th), 300 * np.sin(th)], axis=1)
+    spec = write_pit_topo_spec(tmp_path / "s.topo.json", center=(0.0, 0.0), rim_xy=rim,
+                               n_benches=5, bench_height_m=15.0, bench_width_m=12.0,
+                               face_angle_deg=65.0, ramp_width_m=25.0, shovel_bench={1: 3})
+    assert "roads" not in spec   # backward compatible: no network -> no roads block

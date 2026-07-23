@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "mine_seed": 42,
+    "shift_hours": 6.0,
+    "run_seed": 7,
+    "n_loaders": 2,
+    "n_dumps": 4,
+    "note": "minehaulsim deterministic DES: throughput-vs-fleet (congested vs free-flow), policies"
+  },
+  "saturation": [
+    {
+      "n_trucks": 1,
+      "tph_congested": 243.2,
+      "tph_freeflow": 259.0,
+      "busy_frac_congested": 1.0,
+      "cycles_congested": 15,
+      "congestion_loss": 0.061
+    },
+    {
+      "n_trucks": 2,
+      "tph_congested": 564.8,
+      "tph_freeflow": 604.3,
+      "busy_frac_congested": 1.0,
+      "cycles_congested": 29,
+      "congestion_loss": 0.065
+    },
+    {
+      "n_trucks": 3,
+      "tph_congested": 1013.9,
+      "tph_freeflow": 1126.4,
+      "busy_frac_congested": 0.998,
+      "cycles_congested": 40,
+      "congestion_loss": 0.1
+    },
+    {
+      "n_trucks": 4,
+      "tph_congested": 1248.7,
+      "tph_freeflow": 1278.9,
+      "busy_frac_congested": 0.994,
+      "cycles_congested": 54,
+      "congestion_loss": 0.024
+    },
+    {
+      "n_trucks": 6,
+      "tph_congested": 1964.6,
+      "tph_freeflow": 2136.8,
+      "busy_frac_congested": 0.981,
+      "cycles_congested": 78,
+      "congestion_loss": 0.081
+    },
+    {
+      "n_trucks": 8,
+      "tph_congested": 2435.0,
+      "tph_freeflow": 2657.1,
+      "busy_frac_congested": 0.976,
+      "cycles_congested": 102,
+      "congestion_loss": 0.084
+    },
+    {
+      "n_trucks": 10,
+      "tph_congested": 3067.6,
+      "tph_freeflow": 3325.9,
+      "busy_frac_congested": 0.963,
+      "cycles_congested": 125,
+      "congestion_loss": 0.078
+    },
+    {
+      "n_trucks": 12,
+      "tph_congested": 3765.6,
+      "tph_freeflow": 4052.1,
+      "busy_frac_congested": 0.953,
+      "cycles_congested": 147,
+      "congestion_loss": 0.071
+    },
+    {
+      "n_trucks": 15,
+      "tph_congested": 4419.4,
+      "tph_freeflow": 4728.0,
+      "busy_frac_congested": 0.913,
+      "cycles_congested": 173,
+      "congestion_loss": 0.065
+    },
+    {
+      "n_trucks": 18,
+      "tph_congested": 4777.4,
+      "tph_freeflow": 4802.2,
+      "busy_frac_congested": 0.831,
+      "cycles_congested": 188,
+      "congestion_loss": 0.005
+    },
+    {
+      "n_trucks": 22,
+      "tph_congested": 4816.0,
+      "tph_freeflow": 4798.0,
+      "busy_frac_congested": 0.698,
+      "cycles_congested": 191,
+      "congestion_loss": -0.004
+    }
+  ],
+  "policies": [
+    {
+      "policy": "fixed",
+      "n_trucks": 12,
+      "tph": 3646.3,
+      "busy_frac": 0.949,
+      "cycles": 143
+    },
+    {
+      "policy": "nearest",
+      "n_trucks": 12,
+      "tph": 2874.3,
+      "busy_frac": 0.674,
+      "cycles": 113
+    },
+    {
+      "policy": "minqueue",
+      "n_trucks": 12,
+      "tph": 3765.6,
+      "busy_frac": 0.953,
+      "cycles": 147
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="356" viewBox="0 0 720 356" font-family="Georgia, 'Times New Roman', serif">
+  <defs>
+    <marker id="ca" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#1a1a2e"/>
+    </marker>
+  </defs>
+
+  <text x="360" y="24" text-anchor="middle" font-size="14" font-weight="bold" fill="#1a1a2e">The haul cycle as a deterministic discrete-event process</text>
+
+  <!-- cycle nodes around an ellipse -->
+  <!-- LOADER -->
+  <rect x="60" y="70" width="120" height="52" rx="9" fill="#e5f0e6" stroke="#3fa34d" stroke-width="1.6"/>
+  <text x="120" y="90" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#2f7d3a">at loader</text>
+  <text x="120" y="107" text-anchor="middle" font-size="9.5" fill="#333">queue &#183; LOADING</text>
+  <!-- HAUL -->
+  <rect x="300" y="70" width="120" height="52" rx="9" fill="#eef3f8" stroke="#1b6ca8" stroke-width="1.6"/>
+  <text x="360" y="90" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1b6ca8">haul (loaded)</text>
+  <text x="360" y="107" text-anchor="middle" font-size="9.5" fill="#333">TO_DUMP, up-grade</text>
+  <!-- DUMP -->
+  <rect x="540" y="70" width="120" height="52" rx="9" fill="#fdf1e8" stroke="#e07a3f" stroke-width="1.6"/>
+  <text x="600" y="90" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#c15a22">at dump</text>
+  <text x="600" y="107" text-anchor="middle" font-size="9.5" fill="#333">queue &#183; DUMPING</text>
+  <!-- RETURN -->
+  <rect x="300" y="188" width="120" height="52" rx="9" fill="#eef3f8" stroke="#1b6ca8" stroke-width="1.6"/>
+  <text x="360" y="208" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1b6ca8">return (empty)</text>
+  <text x="360" y="225" text-anchor="middle" font-size="9.5" fill="#333">TO_LOADER, down-grade</text>
+
+  <!-- arrows -->
+  <line x1="180" y1="96" x2="298" y2="96" stroke="#1a1a2e" stroke-width="1.5" marker-end="url(#ca)"/>
+  <line x1="420" y1="96" x2="538" y2="96" stroke="#1a1a2e" stroke-width="1.5" marker-end="url(#ca)"/>
+  <path d="M600,122 C600,175 470,214 422,214" fill="none" stroke="#1a1a2e" stroke-width="1.5" marker-end="url(#ca)"/>
+  <path d="M300,214 C240,214 120,175 120,124" fill="none" stroke="#1a1a2e" stroke-width="1.5" marker-end="url(#ca)"/>
+  <!-- dispatch decision label on the return -->
+  <circle cx="452" cy="200" r="4" fill="#b23a48"/>
+  <text x="490" y="188" text-anchor="middle" font-size="9.5" fill="#b23a48">dispatch decision</text>
+  <text x="490" y="200" text-anchor="middle" font-size="9" fill="#b23a48">(which loader next)</text>
+
+  <!-- travel-time source panel -->
+  <rect x="40" y="266" width="310" height="76" rx="8" fill="#f6f8fb" stroke="#c3d2e0" stroke-width="1"/>
+  <text x="52" y="285" font-size="10.5" font-weight="bold" fill="#1b6ca8">travel time = f(constrained network):</text>
+  <text x="52" y="302" font-size="9.6" fill="#333">one-way ramps &#183; single-lane zones + passing bays &#183;</text>
+  <text x="52" y="316" font-size="9.6" fill="#333">junction blocking &#183; headway capacity, FIFO no-overtake</text>
+  <text x="52" y="333" font-size="9.6" font-style="italic" fill="#444">so bunching EMERGES, it is not sampled from a distribution.</text>
+
+  <!-- speed-by-grade panel -->
+  <rect x="370" y="266" width="310" height="76" rx="8" fill="#fbf7f4" stroke="#e0c9b8" stroke-width="1"/>
+  <text x="382" y="285" font-size="10.5" font-weight="bold" fill="#c15a22">speed by grade (rimpull / retarder):</text>
+  <text x="382" y="303" font-size="9.6" fill="#333">attainable v solves F(v) = min(F_traction, &#951;P/v)</text>
+  <text x="382" y="317" font-size="9.6" fill="#333">against grade + rolling resistance, per truck class + GVW.</text>
+  <text x="382" y="334" font-size="9.6" font-style="italic" fill="#444">Deterministic: output is a pure function of (spec, policy, seed).</text>
+</svg>

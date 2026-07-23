@@ -3,6 +3,13 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/CAOS_MINEHAUL/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/CAOS_MINEHAUL/actions)
 [![License](https://img.shields.io/github/license/fsantibanezleal/CAOS_MINEHAUL)](LICENSE)
 [![Version](https://img.shields.io/github/v/tag/fsantibanezleal/CAOS_MINEHAUL?label=version&sort=semver)](https://github.com/fsantibanezleal/CAOS_MINEHAUL/tags)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21512291-blue)](https://doi.org/10.5281/zenodo.21512291)
+
+Software note (CC-BY-4.0): *"minehaulsim: A Deterministic Discrete-Event Simulator of Mine Haulage on a
+Constrained Road Network"*, concept DOI [10.5281/zenodo.21512291](https://doi.org/10.5281/zenodo.21512291)
+(source in [`manuscripts/haulage-des/`](manuscripts/haulage-des/)). It gives the constrained-network model, the
+speed-by-grade kinematics, and a deterministic demonstration (throughput saturation, emergent congestion, and a
+dispatch-policy gap) on a generated pit.
 
 **Deterministic discrete-event simulation of open-pit and underground mine haulage on constrained
 road networks, with seeded parametric mine generators.**

@@ -26,6 +26,42 @@
   backgroundcolor=\color{gray!6}, aboveskip=6pt, belowskip=4pt,
 }
 
+% IEEEtran hard-codes an em-dash after the abstract and index-terms names; the CAOS
+% content standard (ADR-0067) excludes em-dashes, so the separator is a full stop.
+\makeatletter
+\def\abstract{\normalfont
+    \if@twocolumn
+      \@IEEEabskeysecsize\bfseries\textit{\abstractname}.\ \relax
+    \else
+      \bgroup\par\addvspace{0.5\baselineskip}\centering\vspace{-1.78ex}\@IEEEabskeysecsize\textbf{\abstractname}\par\addvspace{0.5\baselineskip}\egroup\quotation\@IEEEabskeysecsize
+    \fi\@IEEEgobbleleadPARNLSP}
+\def\IEEEkeywords{\normalfont
+    \if@twocolumn
+      \@IEEEabskeysecsize\bfseries\textit{\IEEEkeywordsname}.\ \relax
+    \else
+      \bgroup\par\addvspace{0.5\baselineskip}\centering\@IEEEabskeysecsize\textbf{\IEEEkeywordsname}\par\addvspace{0.5\baselineskip}\egroup\quotation\@IEEEabskeysecsize
+    \fi\@IEEEgobbleleadPARNLSP}
+\makeatother
+
+% Page-1 header block (conventions/manuscript-header-standard.md). The four document
+% macros are set by the publishing tool when the version DOI is reserved.
+\newcommand{\doctype}{Technical note}
+\newcommand{\docversion}{v1.1}
+\newcommand{\docdate}{18 September 2026}
+\newcommand{\versiondoi}{10.5281/zenodo.22822956}
+\newcommand{\conceptdoi}{10.5281/zenodo.21512291}
+\newcommand{\docrepo}{github.com/fsantibanezleal/CAOS\_MINEHAUL}
+\newcommand{\headerblock}{%
+\begin{center}
+\fbox{\parbox{0.94\textwidth}{\small\raggedright
+\textbf{\doctype} \quad$\cdot$\quad \docversion, \docdate \quad$\cdot$\quad Licence CC BY 4.0\\[2pt]
+CAOS open-research programme \quad$\cdot$\quad \texttt{minehaulsim}, discrete-event simulation of mine haulage\\[2pt]
+Version DOI \href{https://doi.org/\versiondoi}{\texttt{\versiondoi}} \quad$\cdot$\quad
+concept DOI (always latest) \href{https://doi.org/\conceptdoi}{\texttt{\conceptdoi}}\\[2pt]
+Not peer reviewed. Source code, data and computational records: \href{https://\docrepo}{\texttt{\docrepo}}
+}}
+\end{center}}
+
 \begin{document}
 
 \title{minehaulsim: A Deterministic Discrete-Event\\ Simulator of Mine Haulage on a\\ Constrained Road Network}
@@ -33,11 +69,13 @@
 \author{Felipe~Santiba\~nez-Leal~\orcidlink{0000-0002-0150-3246}%
 \thanks{F. Santiba\~nez-Leal is with the CAOS open-research programme, Santiago, Chile
 (e-mail: fsantibanez@gmail.com; ORCID 0000-0002-0150-3246).}%
-\thanks{Software note, 2026. Package \texttt{minehaulsim} on PyPI; source (MIT) at
+\thanks{Package \texttt{minehaulsim} on PyPI; source (MIT) at
 \url{https://github.com/fsantibanezleal/CAOS_MINEHAUL}.}}
 
-\markboth{Software Note, 2026}%
+\markboth{\doctype\ \docversion, 2026 \textperiodcentered\ CAOS open-research programme}%
 {Santiba\~nez-Leal: minehaulsim, a deterministic discrete-event simulator of mine haulage on a constrained road network}
+
+\IEEEaftertitletext{\vspace{-0.6\baselineskip}\headerblock\vspace{0.2\baselineskip}}
 
 \maketitle
 
@@ -58,8 +96,10 @@ run exports interoperable cycle logs. We demonstrate the simulator on a generate
 fleet and then \emph{saturates} (from $243$ to $4{,}800$ tonnes per hour as the fleet grows to $22$ trucks, the
 truck busy fraction falling from $1.0$ to $0.70$ as trucks begin to queue), the constrained network costs a
 $6$--$10\%$ production loss over free-flow in the fleet-matched region, and the dispatch policy matters
-(shortest-queue $3{,}766$ vs nearest-shovel $2{,}874$ tonnes per hour at a matched fleet). We are explicit about
-what the model is and is not; every number and figure regenerates from the committed run.
+(shortest-queue $3{,}766$ vs nearest-shovel $2{,}874$ tonnes per hour at a matched fleet). Generated mines are
+synthetic and equipment curves are class-representative envelopes, so no result predicts a specific operation
+without calibration to its data. Every number and figure regenerates from the simulation outputs archived with
+the source code.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -114,7 +154,7 @@ interoperable outputs that the open alternatives lack.
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.86\columnwidth]{fig-network.pdf}
+\includegraphics[width=\columnwidth]{fig-network.pdf}
 \caption{A generated open-pit haul network (one \texttt{generate\_open\_pit} call). The road polylines are
 coloured by grade: the steep spiral access ramp descending into the pit to the two shovels (high grade) and the
 flatter external haul roads fanning out to the four dumps. Travel time is computed on this network, not from a
@@ -131,7 +171,7 @@ F(v) \;=\; \min\!\left(F_{\text{traction}},\; \frac{\eta\,P}{v}\right),
 \end{equation}
 the smaller of a traction limit and the power-limited pull ($P$ engine power, $\eta$ drivetrain efficiency), and
 the steady speed on a segment is where this pull balances the grade and rolling resistance for the truck's gross
-vehicle weight; a retarder envelope caps the descending (empty, down-grade) speed. Travel time on a route is the
+vehicle weight; a retarder envelope caps the descending (empty, down-grade) speed~\cite{cat}. Travel time on a route is the
 integral of these segment kinematics, so a loaded truck climbing a $9\%$ ramp is correctly slower than the same
 truck returning empty. Congestion is layered on top: each segment has a headway-limited capacity and a
 first-in-first-out no-overtake rule, single-lane zones arbitrate opposing traffic through passing bays, and
@@ -158,7 +198,7 @@ load time from named random streams), hauls loaded to a dump, queues, dumps, and
 depleted or closed faces refuse service, and every completed load debits the block model so simulated tonnes and
 planned depletion are the same number by construction. The single most important property is determinism: all
 randomness is drawn from named, seeded streams (payload, load time, dump time, policy tie-breaks), so a run is a
-pure function of its \texttt{(spec, policy, seed)} and is byte-identical across operating systems and sessions.
+pure function of its \texttt{(spec, policy, seed)} and is byte-identical across operating systems and repeated runs.
 This makes a simulated shift a reproducible, testable object rather than a Monte-Carlo sample that changes every
 time. The dispatch policy is a pluggable hook; the package ships transparent baselines (fixed assignment,
 nearest shovel, shortest queue, least saturation) for research comparison, deliberately not a commercial
@@ -166,9 +206,9 @@ fleet-management optimiser.
 
 \section{Demonstration}\label{sec:results}
 
-\begin{figure}[!t]
+\begin{figure*}[!t]
 \centering
-\includegraphics[width=0.99\columnwidth]{fig-throughput.pdf}
+\includegraphics[width=0.8\textwidth]{fig-throughput.pdf}
 \caption{The simulator on one generated pit, six-hour shifts, deterministic. \textbf{(a)} Production rises with
 the truck fleet and saturates as the shovels become the bottleneck; the truck busy fraction (right axis) falls
 from $1.0$ to $0.70$ as added trucks begin to queue. The gap between the free-flow (no-traffic) and congested
@@ -177,14 +217,14 @@ region. \textbf{(b)} At a matched fleet of $12$ trucks the dispatch policy matte
 the fleet busy ($3{,}766$ and $3{,}646$ t/h), while greedy nearest-shovel overloads one shovel and idles trucks
 ($2{,}874$ t/h, busy $0.67$).}
 \label{fig:throughput}
-\end{figure}
+\end{figure*}
 
 To show the simulator produces the phenomena a haulage study cares about, we run it on a single generated pit
 (fixed geometry, seed 42) over six-hour shifts, sweeping the truck fleet and comparing dispatch policies
 (Fig.~\ref{fig:throughput}); every run is deterministic. Three results emerge, none of them put in by hand.
 \emph{Production saturates}: it climbs from $243$ tonnes per hour with one truck to about $4{,}800$ with $22$,
 but the marginal truck earns steadily less as the shovels saturate, and the truck busy fraction falls from $1.0$
-to $0.70$, the classical match-factor tradeoff. \emph{Congestion is real}: the constrained-network run trails the
+to $0.70$, the classical match-factor tradeoff~\cite{morgan}. \emph{Congestion is real}: the constrained-network run trails the
 free-flow run by $6$--$10\%$ through the fleet-matched region, a loss produced purely by the no-overtake network
 dynamics; the two curves converge only once the shovel bottleneck dominates. \emph{Dispatch matters}: at a
 matched fleet of $12$ trucks, shortest-queue dispatch delivers $3{,}766$ t/h and fixed assignment $3{,}646$,
@@ -196,8 +236,8 @@ answers depend on the roads.
 
 \texttt{minehaulsim} generates mines rather than reusing a layout: seeded parametric generators build open pits
 (perturbed-superellipse rims, three ramp topologies, phases, multiple shovels and dumps) and multi-level
-underground mines (declines with passing bays, drift zones, ore passes, shaft bins), each gated by named validity
-checks, so every seed yields a structurally different valid mine. Every run exports interoperable artifacts: a
+underground mines (declines with passing bays, drift zones, ore passes, shaft bins), each accepted only when it
+passes named validity checks, so every seed yields a structurally different valid mine. Every run exports interoperable artifacts: a
 \texttt{cyclelog/v1} CSV event log (load/haul/dump/return), a provenance JSON, a per-truck position trace, and a
 topography export for 3D viewers. The core is NumPy-only (visualisation is an opt-in extra that the core never
 imports), so it installs and runs anywhere Python does. The package is deterministic, extensively unit-tested
@@ -205,50 +245,55 @@ imports), so it installs and runs anywhere Python does. The package is determini
 performance floor, the output contracts), MIT-licensed, and consumed by a downstream dispatch tool. A generated
 mine is simulated in a few lines:
 
+\noindent\begin{minipage}{\columnwidth}
 \begin{lstlisting}[language=Python]
 from minehaulsim import generate_open_pit
-from minehaulsim.des.dispatch import MinQueuePolicy
+from minehaulsim.des.dispatch import (
+    MinQueuePolicy)
 spec = generate_open_pit(seed=42)
-res  = spec.run(policy=MinQueuePolicy(), seed=7, until_s=6*3600)
+res  = spec.run(policy=MinQueuePolicy(), seed=7,
+                until_s=6*3600)
 res.tonnes, res.cycles, res.truck_wait_s
 \end{lstlisting}
+\end{minipage}
 
 Source and the reproducible demonstration of this note are at
 \url{https://github.com/fsantibanezleal/CAOS_MINEHAUL}.
 
 \section{What It Is and Is Not}\label{sec:limits}
 
-The scope is stated honestly, and the package ships an explicit ``what it is and is not'' page. Equipment curves
-are class-representative envelopes generated from first principles around public spec-sheet magnitudes, not a
-manufacturer's performance table; cycle times behave like the machine class but must not be used for procurement.
-The material is a single homogeneous tonnes stream: there is no ore grade, blending, dilution or stockpile
-rehandle, and no fuel, tyre or emissions accounting in this version. Generated mines are synthetic,
-\emph{structure-real at best and always labelled} in the provenance; nothing here predicts a specific operation
-without calibration to its data. The dispatch policies are transparent research baselines, not a commercial
-fleet-management system; the optimisation tier lives in consumers, not here. And the current version carries
-stated simplifications: truck breakdowns materialise at cycle boundaries, surface roads are modelled flat between
-graded ramps, and the underground shaft hoist is a continuous drain rather than a skip cycle. None of this is
-hidden; the honesty page is the first thing the documentation asks a user to read.
+The package documentation states the scope of the model on an explicit ``what it is and is not'' page. Equipment
+curves are class-representative envelopes generated from first principles around public spec-sheet magnitudes, not
+a manufacturer's performance table; cycle times behave like the machine class but must not be used for
+procurement. The material is a single homogeneous tonnes stream: there is no ore grade, blending, dilution or
+stockpile rehandle, and no fuel, tyre or emissions accounting in the present implementation. Generated mines are
+synthetic, \emph{structure-real at best and always labelled} in the provenance; nothing here predicts a specific
+operation without calibration to its data. The dispatch policies are transparent research baselines, not a
+commercial fleet-management system; the optimisation tier lives in consumers, not here. The present implementation
+also makes three simplifications: truck breakdowns materialise at cycle boundaries, surface roads are modelled flat
+between graded ramps, and the underground shaft hoist is a continuous drain rather than a skip cycle. The
+documentation asks a user to read the scope page first.
 
 \section{Conclusion}
 
 \texttt{minehaulsim} gives the open-source community what it lacked: a deterministic discrete-event simulator of
-mine haulage on a genuinely constrained road network, where travel time follows grade, congestion emerges from
+mine haulage on a constrained road network, where travel time follows grade, congestion emerges from
 no-overtake network dynamics, mines are generated rather than reused, and a run is a byte-identical function of
-its inputs. On a generated pit it reproduces the phenomena a haulage study needs, production saturation, an
-emergent congestion loss, and a dispatch-policy gap, on a network where those effects are real rather than
+its inputs. On a generated pit it reproduces the phenomena a haulage study needs (production saturation, an
+emergent congestion loss, and a dispatch-policy gap) on a network where those effects are real rather than
 assumed. The value is a permissively-licensed, reproducible foundation for haulage and dispatch research, and for
 the downstream tools that need structure-real mine scenarios.
 
 \appendices
 \section{Reproduction}\label{app:repro}
 
-The demonstration is \texttt{manuscripts/haulage-des/figures/haulage\_sim.py}: it generates the seed-42 pit,
+{\raggedright
+The demonstration is \path{manuscripts/haulage-des/figures/haulage_sim.py}: it generates the seed-42 pit,
 sweeps the truck fleet under shortest-queue dispatch in both congested and free-flow modes, compares the dispatch
-policies at a matched fleet, and exports the road network, writing \texttt{data/haulage\_sim.json} and
-\texttt{data/network.json}. The figure script reads those artifacts; the haul-cycle schematic is a hand-authored
+policies at a matched fleet, and exports the road network, writing \path{data/haulage_sim.json} and
+\path{data/network.json}. The figure script reads those artifacts; the haul-cycle schematic is a hand-authored
 theme-aware drawing. Because every run is a pure function of \texttt{(spec, policy, seed)}, re-running reproduces
-every number in Section~\ref{sec:results} and Figs.~\ref{fig:network}--\ref{fig:throughput} exactly.
+every number in Section~\ref{sec:results} and Figs.~\ref{fig:network}--\ref{fig:throughput} exactly.\par}
 
 \balance
 

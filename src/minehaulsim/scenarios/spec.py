@@ -1,9 +1,9 @@
-"""MineSpec: the frozen scenario document — everything needed to re-run a scenario identically.
+"""MineSpec: the frozen scenario document, everything needed to re-run a scenario identically.
 
 `MineSpec.from_json(path).run(...)` reproduces the exact event list of the spec it was written
 from: the network, traffic constraints, roster and seed are all IN the document (schema
 `minehaulsim.minespec/v1`). JSON serialization is canonical (sorted keys, fixed separators, LF)
-so the same spec always produces the same bytes — the determinism tests hash it.
+so the same spec always produces the same bytes, the determinism tests hash it.
 
 The `params` dict records every sampled generator axis (auditability: WHY this pit looks the way
 it does); `topo` carries the exact PitTopoSpec key set consumers ingest; `est` carries the

@@ -13,3 +13,6 @@ __pycache__/
 !.env.example
 .DS_Store
 Thumbs.db
+
+# setuptools build output; a commit on 2026-09-25 persisted build/lib by mistake and was not promoted
+build/

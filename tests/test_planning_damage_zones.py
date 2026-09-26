@@ -110,7 +110,7 @@ def test_damage_closure_forces_reroute_end_to_end():
     assert rerouted is not None
     assert [u.segment_id for u in rerouted.uses] == [7, 5, 4]       # around the exclusion, via 103
     assert rerouted.time_s > base.time_s
-    # and the face anchored UNDER the wall (101) becomes unreachable — the honest severed case
+    # and the face anchored UNDER the wall (101) becomes unreachable: the honest severed case
     assert router.route(104, 101, truck, loaded=False, closed=closed1, speed_caps=caps1) is None
 
 

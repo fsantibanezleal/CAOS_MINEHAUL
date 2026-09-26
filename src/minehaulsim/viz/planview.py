@@ -1,7 +1,7 @@
 """Plan-view rendering of a generated mine: the picture that PROVES scenario variety.
 
 Draws, for an open-pit MineSpec:
-    - bench rings, reconstructed from the spec's sampled rim parameters (the spec stays lean —
+    - bench rings, reconstructed from the spec's sampled rim parameters (the spec stays lean, 
       geometry is a deterministic function of `params`, so the view re-derives it)
     - the road network from the serialized polylines: ramps colored by kind (two-way, one-way
       with direction arrows, single-lane zoned), bench arcs, surface trunk
@@ -104,7 +104,7 @@ def plot_plan(spec: MineSpec, ax=None):
 
     p = spec.params
     ax.set_title(
-        f"{spec.name} — {p.get('ramp_style', '?')}, {p.get('n_benches', '?')} benches, "
+        f"{spec.name}, {p.get('ramp_style', '?')}, {p.get('n_benches', '?')} benches, "
         f"{len(spec.loaders)} shovels, {len(spec.dumps)} dumps, seed {spec.seed}",
         fontsize=10)
     ax.set_aspect("equal")

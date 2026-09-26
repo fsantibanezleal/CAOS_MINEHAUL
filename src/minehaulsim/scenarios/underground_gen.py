@@ -8,7 +8,7 @@ capacities | 1..4 drifts per level (80..350 m, 1..3 drawpoints) | flow_mode (lhd
 truck_direct / truck_shaft) | 1..2 LHDs per producing level | UG truck classes, fleet sized to a
 target match factor against the representative decline cycle.
 
-Loading points by flow mode (IO contract 9.1 — shovels are whatever the TRUCKS load at):
+Loading points by flow mode (IO contract 9.1, shovels are whatever the TRUCKS load at):
     lhd_orepass_truck  chutes (CHUTE class); LHDs feed them through pass inventories
     truck_shaft        same, but trucks dump at the shaft bin (short underground cycle)
     truck_direct       drift stubs (LHD_*_LOADING class); no passes, no LHD agents
@@ -80,7 +80,7 @@ def _sample_design(p: UndergroundParams, geo: np.random.Generator) -> Undergroun
         shaft = True
 
     # truck_direct: every drift stub is a LOADING point (a cyclelog shovel needing its own LHD
-    # + truck stream over ONE decline) — one active heading per level keeps the match factor
+    # + truck stream over ONE decline): one active heading per level keeps the match factor
     # physically reachable. LHD flows concentrate loading at 1..3 chutes, so multiple drifts
     # per level are fine there.
     max_drifts = 2 if flow == "truck_direct" else 5

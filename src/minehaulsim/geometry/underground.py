@@ -1,7 +1,7 @@
 """Multi-level underground mine geometry: graph-first generation (PLUME-style skeleton with
 DOT-style decline constraints).
 
-Structure built by `build_underground(design)` (pure, RNG-free — the scenario generator samples
+Structure built by `build_underground(design)` (pure, RNG-free, the scenario generator samples
 the design):
 
 - **Levels**: `n_levels` horizontal working levels, first at `-first_level_depth_m`, spaced
@@ -11,7 +11,7 @@ the design):
   each turn a capacity-1 Junction). Grade fixed by design (1:8..1:6.5 = 12.5..15.4%),
   single-lane (`width_class=1`). **Passing bays** are inserted every `passing_bay_spacing_m`
   of decline length: each bay is a node splitting the decline; every inter-bay span is ONE
-  DirectionZone (opposing traffic arbitrates at the bays — the underground reality that makes
+  DirectionZone (opposing traffic arbitrates at the bays, the underground reality that makes
   decline traffic THE bottleneck).
 - **Per level**: an access node where the decline crosses the level elevation; `n_drifts`
   dead-end production drifts (each a capacity-1 single-vehicle DirectionZone) ending in 1..3
@@ -21,7 +21,7 @@ the design):
   tip nodes on its spanned upper levels, one chute node on the haulage level. The DES couples
   LHD tips to chute loading through the inventory (des/sim.py).
 - **Shaft** (optional): a bin node on the haulage level; trucks may dump there (hoisting drains
-  the bin at a rate — abstracted in the DES).
+  the bin at a rate, abstracted in the DES).
 - **Surface**: portal at the decline top + a crusher/dump destination a short trunk away.
 
 Node id blocks: drawpoints + chutes (the cyclelog "shovels") take 1..N; surface/bin dumps 101..;
@@ -279,7 +279,7 @@ def build_underground(design: UndergroundDesign) -> UndergroundGeometry:  # noqa
     # ---- per level: drifts (dead-end capacity-1 zones) with drawpoints.
     # Cyclelog shovel ids (1..N) go to whatever the TRUCK fleet loads at (IO contract 9.1):
     # truck_direct -> the drift stubs (LHD loads trucks there); LHD flows -> the chutes below.
-    # Drawpoints are LHD dig targets, never cyclelog shovels — they keep infrastructure ids.
+    # Drawpoints are LHD dig targets, never cyclelog shovels: they keep infrastructure ids.
     truck_direct = design.flow_mode == "truck_direct"
     for lvl, spec in enumerate(design.levels):
         access = geo.access_nodes[lvl]

@@ -1,4 +1,4 @@
-"""Geology attachment — ground a generated scenario in a MineLib-nature block model (oreblocks).
+"""Geology attachment, ground a generated scenario in a MineLib-nature block model (oreblocks).
 
 `attach_geology(spec)` builds a seeded synthetic deposit (grades on a bench-aligned 3-D grid),
 solves the EXACT ultimate pit (max-closure), and stamps every loader with the geology of ITS OWN
@@ -8,7 +8,7 @@ gains a `materials["geology"]` block (archetype, seed, econ, the stamped exact p
 provenance is auditable and deterministic.
 
 Honest scope (v1): the block-model grid is bench-aligned in the VERTICAL axis (n benches, bench
-height) but does not reproduce the superellipse footprint horizontally — grades per bench are
+height) but does not reproduce the superellipse footprint horizontally, grades per bench are
 statistics of the exact pit at that level, not a voxel-per-voxel match of the haulage topography.
 That is exactly what dispatch consumers need (grade/ore-fraction at each loading face) without
 pretending a geometric identity the generator does not have.

@@ -11,7 +11,7 @@ Order (cheap structural checks first, the smoke simulation last):
     throughput_sane      static match factor in [0.5, 2.2]; estimated cycle in [6, 90] min
     deadlock_free_smoke  a smoke run with the default policy completes with no SimulationDeadlock,
                          >= 8 cyclelog rows, >= 1 load per loader and >= 1 completed cycle.
-                         The horizon is max(30 sim-min, 2.5 x estimated cycle) — a fixed 30 min
+                         The horizon is max(30 sim-min, 2.5 x estimated cycle), a fixed 30 min
                          would false-fail deep pits whose single cycle exceeds it.
 
 `diversity_signature` is the batch-mode structural fingerprint (ramp style, depth bucket, roster

@@ -4,7 +4,7 @@ Admissibility (the constraints made operational):
     - width: a unit with width_class > segment.width_class cannot use the segment at all
     - direction: one_way segments only a->b (the graph's adjacency already encodes this)
     - closures: a `closed` set of segment ids (breakdowns, slope-damage closures) excludes edges
-      WITHOUT mutating the frozen graph — the DES/planning layers own that state
+      WITHOUT mutating the frozen graph, the DES/planning layers own that state
     - speed caps: an optional `speed_caps` mapping (segment id -> cap km/h) composes by MIN with
       the segment's own limit (speed-restricted zones feed this)
 
@@ -15,7 +15,7 @@ monotone sequence number so equal-cost pops are FIFO across platforms.
 
 Route cache: keyed by (origin, dest, unit, loaded, closures-key, caps-key); the caller passes the
 same frozen inputs, cache hits are O(1). Invalidation is automatic because the key CONTAINS the
-closure/cap state (frozensets) — a closure change is simply a different key.
+closure/cap state (frozensets), a closure change is simply a different key.
 """
 from __future__ import annotations
 

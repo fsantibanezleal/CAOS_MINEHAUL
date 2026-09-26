@@ -1,4 +1,4 @@
-"""U11 acceptance: failure processes are opt-in, deterministic, and MOVE the KPIs the right way —
+"""U11 acceptance: failure processes are opt-in, deterministic, and MOVE the KPIs the right way, 
 breakdowns and loader downtime cost tonnes; a closure window parks trucks and hauling RESUMES
 when it reopens; downtime accounting lands in the result."""
 import pytest

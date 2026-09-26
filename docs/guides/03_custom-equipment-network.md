@@ -1,4 +1,4 @@
-# 03 — A custom truck class / your own network
+# 03: A custom truck class / your own network
 
 ## Your own truck class
 
@@ -11,7 +11,7 @@ TRUCKS["MY_150T"] = _truck("MY_150T", "rigid", payload=150.0, sd=7.0, empty=110.
 
 `_truck` builds the class-representative envelopes (`F(v) = min(traction, ηP/v)`) from the
 magnitudes you give. If you have a REAL rimpull table, construct `TruckClass` directly and pass
-your `((v_kmh, F_kN), ...)` points (monotone decreasing in v) — everything downstream (solver,
+your `((v_kmh, F_kN), ...)` points (monotone decreasing in v), everything downstream (solver,
 routing, traffic) consumes the table, not the generator.
 
 Honesty rule: label runs made with hand-tuned classes accordingly in your provenance; the
@@ -19,7 +19,7 @@ bundled catalog is class-representative, not OEM data.
 
 ## Your own network (bring-your-own-mine)
 
-The generators are conveniences — the simulator runs on ANY frozen `RoadNetwork`:
+The generators are conveniences, the simulator runs on ANY frozen `RoadNetwork`:
 
 ```python
 import numpy as np

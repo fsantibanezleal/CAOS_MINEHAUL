@@ -373,7 +373,7 @@ def build_open_pit(design: OpenPitDesign) -> OpenPitGeometry:  # noqa: PLR0912, 
 
     # ---- faces on benches, tied along the bench arc to EVERY ramp's crossing on that bench.
     # (With a one-way dual_spiral circulation, a face reached from the descent ramp MUST have a
-    # bench-road connection to the climb ramp — one arc per ramp is the physical berm road.)
+    # bench-road connection to the climb ramp: one arc per ramp is the physical berm road.)
     for face_idx, (bench, az) in enumerate(design.faces):
         face_id = FACE_ID_BASE + face_idx
         inset = bench * design.step_in_m

@@ -1,4 +1,4 @@
-# 03 — Bunching, headway and direction-zone policies
+# 03: Bunching, headway and direction-zone policies
 
 ## Bunching must EMERGE
 
@@ -8,11 +8,11 @@ Most simple simulators SAMPLE this loss from a distribution. Here it emerges fro
 
 1. **Slot capacity**: a segment holds `max(1, floor(length / 80 m))` vehicles per direction;
    entry blocks when full (FIFO wakeup).
-2. **No-overtake**: `exit_t = max(own_kinematic_exit, predecessor_exit + 8 s)` per direction —
+2. **No-overtake**: `exit_t = max(own_kinematic_exit, predecessor_exit + 8 s)` per direction, 
    a fast empty truck exits no earlier than 8 s behind a slow loaded one.
 
 The U6b test shows consecutive dumps arriving ≥ 8 s apart on a shared segment under traffic and
-closer in free-flow (`fast_mode`) — same seed, so the delta IS the traffic.
+closer in free-flow (`fast_mode`), same seed, so the delta IS the traffic.
 
 ## Direction zones (single-lane roads)
 
@@ -32,5 +32,5 @@ opposing decline traffic, `loaded_priority` tonnage ≥ `lockout` tonnage.
 
 ## Junctions
 
-A capacity-k conflict point: crossing holds the junction `cross_s` seconds, FIFO by arrival —
+A capacity-k conflict point: crossing holds the junction `cross_s` seconds, FIFO by arrival, 
 also how switchback 180° turns (capacity 1, 15 s) and underground zigzag turns are modeled.

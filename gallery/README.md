@@ -1,6 +1,6 @@
 # Scenario gallery
 
-12 scenarios from `generate_batch(n=12, seed=2026)` — every one passes the seven
+12 scenarios from `generate_batch(n=12, seed=2026)`, every one passes the seven
 validity gates and carries a UNIQUE structural signature (ramp style, depth, roster,
 network shape). Regenerate with `python scripts/gen_gallery.py`.
 

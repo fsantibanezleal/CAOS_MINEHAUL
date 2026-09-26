@@ -1,4 +1,4 @@
-# 01 — cyclelog/v1
+# 01: cyclelog/v1
 
 CSV, UTF-8, LF line endings, header EXACTLY:
 
@@ -23,7 +23,7 @@ travel + queue.
 ## Id mapping
 
 Open pit: faces are shovels `1..N`; crushers/dumps/stockpile are `101..`. Underground: whatever
-the TRUCK fleet loads at is the shovel — chutes (LHD flows) or LHD-loading drift stubs
+the TRUCK fleet loads at is the shovel, chutes (LHD flows) or LHD-loading drift stubs
 (truck_direct); the surface dump / shaft bin is the dump id.
 
 ## The validator

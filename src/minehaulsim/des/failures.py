@@ -1,18 +1,18 @@
-"""Failure & disturbance processes (blueprint 7.5) — OFF by default, opt-in per run.
+"""Failure & disturbance processes (blueprint 7.5), OFF by default, opt-in per run.
 
 Three orthogonal disturbance channels, all drawing ONLY from named RngManager streams:
 
 - **Truck breakdowns**: per-truck exponential time-between-failures (mean `truck_mtbf_h`),
   lognormal repair (mean `truck_repair_mean_s`). A truck failing mid-leg FINISHES its current
   segment, then parks at the next node for the repair duration (v1 semantics: no mid-segment
-  blocking — documented; the segment-blocking variant is a later axis).
+  blocking, documented; the segment-blocking variant is a later axis).
 - **Loader downtime**: per-loader exponential TBF + lognormal repair; a down loader refuses
   service (its queue holds; dispatch sees `est_free_s` grow through MineView).
 - **Segment closure windows**: scheduled (start_s, duration_s, segment_ids) maintenance closures;
   the router sees them through the same `closed` frozenset mechanism the planning overlay uses.
 
 Implementation contract: the sim asks `FailureState.next_truck_failure(tid, now)` AFTER each
-completed leg (a failure never interrupts an event in flight) — deterministic, event-count
+completed leg (a failure never interrupts an event in flight), deterministic, event-count
 bounded, no polling.
 """
 from __future__ import annotations

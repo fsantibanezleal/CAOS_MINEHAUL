@@ -1,10 +1,10 @@
-# ADR-0001 — Hand-rolled event-scheduling engine (no simpy)
+# ADR-0001: Hand-rolled event-scheduling engine (no simpy)
 
 - Status: Accepted · Date: 2026-07-02 (recorded at U12; decision made at U5)
 
 ## Context
 
-The package promises **byte-identical runs across OS and sessions** — the property every
+The package promises **byte-identical runs across OS and sessions**, the property every
 downstream artifact (cyclelog exports, gallery, tests) is built on. Generator-based frameworks
 (simpy) schedule through Python generators and wall-ordering details that make cross-version
 determinism harder to guarantee, add a dependency, and hide the event queue from profiling.
@@ -22,7 +22,7 @@ coroutines.
 - Determinism is a property of the data structure, not of framework internals; the same
   `(spec, policy, seed)` reproduces event-for-event on ubuntu and windows in CI.
 - No behavioral dependency; numpy stays the only runtime requirement.
-- Agent logic is continuation-passing (callbacks) rather than coroutine style — slightly more
+- Agent logic is continuation-passing (callbacks) rather than coroutine style: slightly more
   verbose, fully explicit.
 - Measured throughput ~60–80k executed events/s on reference scenarios (U11), far above the
   20k floor the CI enforces.

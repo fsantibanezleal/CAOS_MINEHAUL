@@ -1,4 +1,4 @@
-"""minehaulsim — deterministic DES of open-pit + underground mine haulage on constrained road networks.
+"""minehaulsim, deterministic DES of open-pit + underground mine haulage on constrained road networks.
 
 Public API grows per build unit; see CHANGELOG.md. Display version lives in VERSION (X.XX.XXX).
 """

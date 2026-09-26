@@ -1,8 +1,8 @@
-"""Evaluate APIs: put a pit + a plan on the table and PRICE them — summary, reachability,
-period-by-period feasibility vs a fleet — all pure functions over frozen inputs + a state snapshot.
+"""Evaluate APIs: put a pit + a plan on the table and PRICE them, summary, reachability,
+period-by-period feasibility vs a fleet, all pure functions over frozen inputs + a state snapshot.
 
 Honesty note (documented, tested): feasibility cycle times are FREE-FLOW (loaded route + empty
-return + nominal load/dump service) — a LOWER bound with no queueing; the DES gives the honest
+return + nominal load/dump service), a LOWER bound with no queueing; the DES gives the honest
 number. `plan_feasibility` simulates the ORDER constraints without a DES: within a period, available
 tonnes = the depletable prefix (blocks in legal order) across the period's active phases, starting
 from the given state (or fresh).

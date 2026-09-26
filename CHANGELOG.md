@@ -2,9 +2,22 @@
 
 Display versions `X.XX.XXX` (PEP 440 normalized in pyproject). Tag every release `vX.XX.XXX`.
 
-## [0.12.000] — 2026-07-09
+## [0.12.001] · 2026-09-26
 
-### Added — road network in the topo export (U16, the DispatchLab 3D bridge, #28)
+### Added
+- The DispatchLab integration guide documents the `roads/v1` block (a note from 2026-07-09 that had
+  waited on `task/topo-road-network`).
+
+### Changed
+- No em-dash in the package, the docs, the figures and the workflow (ADR-0067); the archetype's
+  content guard runs in CI.
+- `build/` is ignored: a commit of 2026-09-25 had persisted setuptools output under `build/lib` on
+  the same task branch, and that commit was not promoted. The branch's copy of the haulage DES
+  manuscript was older than the v1.1 already on `main` and was not promoted either.
+
+## [0.12.000] · 2026-07-09
+
+### Added: road network in the topo export (U16, the DispatchLab 3D bridge, #28)
 - **`write_pit_topo_spec(..., network=, headway_m=, headway_s=)`** now emits an optional
   `roads` block (`minehaulsim.roads/v1`): the REAL constrained road network as JSON, so a 3D
   consumer (DispatchLab) renders the ACTUAL generated roads and can mirror the per-segment
@@ -15,16 +28,16 @@ Display versions `X.XX.XXX` (PEP 440 normalized in pyproject). Tag every release
 - Backward compatible: with no `network=`, `roads` is absent and the exact PitTopoSpec key set is
   unchanged (existing consumers see no diff). Docs: `data-contract/02` updated; two new io tests.
 
-## [0.11.000] — 2026-07-03
+## [0.11.000] · 2026-07-03
 
-### Added — geology attachment (U15, the oreblocks bridge)
+### Added: geology attachment (U15, the oreblocks bridge)
 - **`attach_geology(spec)`** (`minehaulsim.scenarios.geology`, extra **`[geology]`** → the
   `oreblocks` package): grounds an open-pit scenario in a seeded MineLib-nature block model.
   A bench-aligned deposit (archetype porphyry/vein/layered/core_halo) is generated, the EXACT
   ultimate pit is solved (max-closure), and every loader is stamped with the geology of ITS OWN
   bench (per `topo.shovelBench`): `face_bench`, `face_grade`, `face_ore_fraction`,
   `face_level_tonnes`. The spec gains `materials["geology"]` (`minehaulsim.geology/v1`): grid,
-  econ, cutoff, per-level in-pit statistics and the stamped exact pit value — auditable and
+  econ, cutoff, per-level in-pit statistics and the stamped exact pit value, auditable and
   deterministic in (spec, archetype, seed).
 - CLI: `minehaulsim generate --geology porphyry` prints the stamped pit value + cutoff and writes
   the geology-carrying spec.
@@ -33,7 +46,7 @@ Display versions `X.XX.XXX` (PEP 440 normalized in pyproject). Tag every release
   superellipse). Backward compatible: `LoaderSpec` ignores the extra keys; cyclelog/v1 unchanged
   (per-face grade columns land with the DispatchLab regeneration, CAOS_DispatchLab #50).
 
-## [0.10.000] — 2026-07-02
+## [0.10.000] · 2026-07-02
 
 First published release (PyPI, trusted publishing).
 
@@ -48,28 +61,28 @@ First published release (PyPI, trusted publishing).
 - Versions 0.06–0.09 were not skipped work: 0.10.000 is the agreed first-release milestone
   covering units U1–U12 (see the per-unit entries below).
 
-## [0.05.000] — 2026-07-02
+## [0.05.000] · 2026-07-02
 
 ### Added
 - U11 failures (`des/failures.py`, OFF by default): per-truck exponential-TBF breakdowns with
-  lognormal repairs (materialize at the cycle boundary — the truck parks at its node),
+  lognormal repairs (materialize at the cycle boundary, the truck parks at its node),
   per-loader downtime (the granted truck waits through the repair; dispatch sees it via
   est_free_s), and scheduled segment-closure windows fed into the router's `closed` set. A
   loaded truck caught at the face by a closure HOLDS its spot and retries until the window
   reopens. `ShiftResult.downtime` carries per-unit repair seconds.
 - U11 perf: `scripts/bench_engine.py` + `tests/test_perf.py` CI floor (>= 20k executed
   events/s on the reference preset, traffic ON). Measured locally: ~77k ev/s (starter pit),
-  ~63k ev/s (48-truck pit) — comfortably above the floor; no `__slots__` pass needed.
+  ~63k ev/s (48-truck pit), comfortably above the floor; no `__slots__` pass needed.
 
-## [0.04.000] — 2026-07-02
+## [0.04.000] · 2026-07-02
 
 ### Added
-- U10 underground: `geometry/underground.py` (multi-level solids — spiral/zigzag declines with
+- U10 underground: `geometry/underground.py` (multi-level solids: spiral/zigzag declines with
   passing bays splitting every span into a DirectionZone, capacity-1 drift zones with drawpoint
   fans, ore-pass tips + haulage chutes, optional shaft bin, zigzag turns as capacity-1
   junctions), `des/materials.py` (`OrePassRuntime` with exact conservation, `ShaftBinRuntime`
   with closed-form hoist-drain waits), LHD agents in the DES (dig -> tram -> tip -> return;
-  a full pass parks the LHD, an empty pass parks the loading truck under the chute — the two
+  a full pass parks the LHD, an empty pass parks the loading truck under the chute, the two
   fleets couple ONLY through inventory), `scenarios/underground_gen.py` (all axes sampled,
   three flow modes: lhd_orepass_truck / truck_direct / truck_shaft; fleet sized to target MF),
   MineSpec carries `lhds` + `materials` (additive, schema unchanged) and a `minetopo/v1` topo
@@ -77,11 +90,11 @@ First published release (PyPI, trusted publishing).
 - ShiftResult.materials: per-pass conservation summaries (+ the in-flight loading term that
   closes the balance at cutoff) and the shaft-bin hoist summary.
 
-## [0.03.000] — 2026-07-02
+## [0.03.000] · 2026-07-02
 
 ### Added
 - U9 viz extra (`minehaulsim[viz]`, headless Agg by design): `viz/planview.py` (plan view from
-  the spec alone — rings re-derived from sampled rim params, ramps colored by kind with one-way
+  the spec alone, rings re-derived from sampled rim params, ramps colored by kind with one-way
   arrows, zoned ramps dashed, numbered faces / crushers / dumps / portals / junctions),
   `viz/profile.py` (ramp grade profile per connected ramp chain + single-truck cycle Gantt).
 - U9 CLI (blueprint 4.5): `generate` (seed or preset, spec JSON + plan SVG), `batch`, `run`
@@ -90,7 +103,7 @@ First published release (PyPI, trusted publishing).
 - `scripts/gen_gallery.py`: the committed 12-seed gallery (SVG per pit + README + PNG contact
   sheet) proving structural variety; `scripts/demo_offline.py` end-to-end.
 
-## [0.02.000] — 2026-07-02
+## [0.02.000] · 2026-07-02
 
 Consolidates build units U2..U8 (each merged via its own PR; see the git history for the
 per-unit record).
@@ -117,7 +130,7 @@ per-unit record).
   evaluation APIs (`pit_summary`, `reachability`, `plan_feasibility`).
 - U7 IO: cyclelog/v1 writer + faithful consumer-side validator, provenance JSON, PitTopoSpec
   export with least-squares rim-ellipse fit, minetopo writer.
-- U8 scenarios: parametric open-pit geometry (`geometry/openpit.py` — perturbed-superellipse rim
+- U8 scenarios: parametric open-pit geometry (`geometry/openpit.py`: perturbed-superellipse rim
   with sector-boosted phases, bench rings by step-in, spiral / switchback / dual_spiral ramps
   split into constant-grade segments, faces arc-tied to every ramp, ex-pit destinations behind a
   shared junction trunk), `MineSpec` frozen scenario document (canonical JSON, `to_runtime()`,
@@ -126,12 +139,12 @@ per-unit record).
   four presets. `Segment.single_lane_op` marks wide-vehicle single-lane ramps so they can join
   DirectionZones.
 
-## [0.01.000] — 2026-07-02
+## [0.01.000] · 2026-07-02
 
 ### Added
 - U1 scaffold: src-layout package (`minehaulsim` + `minehaulsim_cli`), Apache-2.0, CI (ruff + pytest
   on py3.11–3.13, ubuntu + windows), VERSION/CHANGELOG discipline.
 - `types.py`: unit conventions (m, s, t, signed grade fractions), core ids/enums (`SiteKind`,
   `CycleEvent` = the cyclelog/v1 tokens, `MineKind`), `XYZ`.
-- `rng.py`: `RngManager` — named independent child streams from one master seed
+- `rng.py`: `RngManager`: named independent child streams from one master seed
   (SeedSequence-derived; byte-stable across OS/sessions; the package's only randomness source).

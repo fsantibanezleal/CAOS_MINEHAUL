@@ -2,12 +2,12 @@
 
 Two-tier consumption (the perf contract):
     cheap tier   every dispatch/route call feeds `routing_inputs()` straight into the EXISTING
-                 Router.route(closed=..., speed_caps=...) — no rebuild, no new Router;
+                 Router.route(closed=..., speed_caps=...), no rebuild, no new Router;
     structural   only when `revision` bumps (face spur re-anchored, bench activated) does the
-                 consumer rebuild `effective_network(base)` + a fresh Router — never mid-traversal.
+                 consumer rebuild `effective_network(base)` + a fresh Router, never mid-traversal.
 
 Id allocation: overlay-created nodes/segments start at 100_000 (generators stay below; asserted in
-U8), from monotone counters serialized in PitState snapshots — deterministic, collision-free.
+U8), from monotone counters serialized in PitState snapshots, deterministic, collision-free.
 """
 from __future__ import annotations
 

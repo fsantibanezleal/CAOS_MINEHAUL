@@ -1,4 +1,4 @@
-"""Determinism of the stream manager — the package's foundational guarantee."""
+"""Determinism of the stream manager, the package's foundational guarantee."""
 import numpy as np
 import pytest
 

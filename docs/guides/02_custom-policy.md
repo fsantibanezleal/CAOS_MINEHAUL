@@ -1,4 +1,4 @@
-# 02 — A custom dispatch policy
+# 02: A custom dispatch policy
 
 A policy is any object with `name`, `next_loader(truck, mine)` and `next_dump(truck, mine)`.
 It sees a READ-ONLY `MineView` and returns node ids; if it needs randomness it must receive a
@@ -24,9 +24,9 @@ res = spec.run(LongestIdleLoaderPolicy(), seed=7)
 
 Rules that keep results meaningful:
 
-1. **Deterministic tie-breaking** — always end sort keys with `node_id`; a policy that breaks
+1. **Deterministic tie-breaking**: always end sort keys with `node_id`; a policy that breaks
    ties on dict order destroys reproducibility.
-2. **Respect `diggable`** — a False loader is plan-forbidden NOW; choosing it parks the truck.
-3. **Never mutate the view** — the MineView is a snapshot; state belongs in your policy object.
+2. **Respect `diggable`**: a False loader is plan-forbidden NOW; choosing it parks the truck.
+3. **Never mutate the view**: the MineView is a snapshot; state belongs in your policy object.
 4. Compare against the baselines (`fixed`, `nearest`, `minqueue`, `minsat`, `random`) on the
    SAME spec + seed; the divergence tests in `tests/test_sim.py` show the pattern.

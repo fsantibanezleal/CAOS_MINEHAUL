@@ -1,4 +1,4 @@
-"""Ramp grade profile + single-truck cycle Gantt — the two diagnostic side views.
+"""Ramp grade profile + single-truck cycle Gantt, the two diagnostic side views.
 
 `save_ramp_profile`: elevation vs cumulative horizontal distance for every ramp chain (connected
 component of graded segments), annotated with the design grade. Dual-spiral pits show two chains.
@@ -23,7 +23,7 @@ PHASE_COLORS = {"loading": "#0369a1", "loaded travel": "#c2410c",
 
 def _ramp_components(net: RoadNetwork) -> list[list[int]]:
     """Connected components over graded segments (shared endpoints), each ordered by descending
-    elevation — one component per physical ramp."""
+    elevation, one component per physical ramp."""
     ramp = {s.id: s for s in net.segments.values() if abs(s.grade_pct) > 1e-9}
     parent = {sid: sid for sid in ramp}
 
@@ -73,7 +73,7 @@ def save_ramp_profile(spec: MineSpec, path: str | Path) -> Path:
         ax.plot(xs, zs, lw=1.8, label=f"ramp {ci + 1}")
     grade = spec.params.get("ramp_grade_pct")
     style = spec.params.get("ramp_style", "?")
-    ax.set_title(f"{spec.name} — ramp profile ({style}, {grade}% design grade)", fontsize=10)
+    ax.set_title(f"{spec.name}, ramp profile ({style}, {grade}% design grade)", fontsize=10)
     ax.set_xlabel("cumulative horizontal distance [m]", fontsize=8)
     ax.set_ylabel("elevation [m]", fontsize=8)
     ax.tick_params(labelsize=7)

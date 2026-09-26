@@ -1,4 +1,4 @@
-# 02 — Underground axes and flow modes
+# 02: Underground axes and flow modes
 
 | axis | range / choices | what it changes |
 |---|---|---|
@@ -19,9 +19,9 @@
   cyclelog shovels.
 - **truck_direct**: trucks drive to the level drift STUBS where an LHD shuttle-loads them
   (abstracted into `LHD_*_LOADING` classes, ~2 min/pass including the tram). One active heading
-  per level — more would demand a fleet the single decline cannot feed (the MF gate enforces
+  per level, more would demand a fleet the single decline cannot feed (the MF gate enforces
   the same physics).
-- **truck_shaft**: like the LHD flow, but trucks dump at the shaft BIN near the haulage level —
+- **truck_shaft**: like the LHD flow, but trucks dump at the shaft BIN near the haulage level, 
   short cycles bounded by hoist drain, not by the decline.
 
 ## The coupling (ADR-0006)

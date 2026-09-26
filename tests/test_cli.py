@@ -1,4 +1,4 @@
-"""U9 CLI acceptance: every subcommand end-to-end — generate/batch write valid specs, run exports
+"""U9 CLI acceptance: every subcommand end-to-end, generate/batch write valid specs, run exports
 a contract-passing cyclelog + provenance + topo, validate gates both file kinds, demo prints KPIs."""
 import json
 

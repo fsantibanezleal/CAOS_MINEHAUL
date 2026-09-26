@@ -1,4 +1,4 @@
-# 01 — Rimpull, retarder and speed-by-grade
+# 01: Rimpull, retarder and speed-by-grade
 
 ## Effective resistance
 
@@ -34,11 +34,11 @@ stalls (`v = 0`, an inadmissible edge for routing). Final segment speed =
 `min(attainable, segment limit, zone caps, class max)`.
 
 Anchor (tested by hand): a CAT-793F-class truck, loaded, on 10% grade + 2% rolling ⇒
-`F_req ≈ 461 kN` ⇒ power-limited at ≈ 13.1 km/h — the magnitude the Performance Handbook charts
+`F_req ≈ 461 kN` ⇒ power-limited at ≈ 13.1 km/h, the magnitude the Performance Handbook charts
 give for this class.
 
 ## Traversal time
 
-`t = L / v_seg + max(0, v_seg − v_entry) / a` with `a` = 0.35 m/s² loaded, 0.5 empty — a bounded
+`t = L / v_seg + max(0, v_seg − v_entry) / a` with `a` = 0.35 m/s² loaded, 0.5 empty, a bounded
 trapezoidal acceleration penalty, so climbs out of junction stops are honestly slower than
 free-flow.

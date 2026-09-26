@@ -1,6 +1,6 @@
 """The constrained road network: a directed multigraph of Segments between NodeSites.
 
-This is the package's central claim vs prior art: haul routes are NOT a scalar distance matrix —
+This is the package's central claim vs prior art: haul routes are NOT a scalar distance matrix, 
 they are a graph whose edges carry the physical and OPERATIONAL constraints real mines run under:
 
     - `one_way`        traversal only a->b (spiral ramps are commonly one-way per bench design)

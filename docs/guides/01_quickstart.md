@@ -1,4 +1,4 @@
-# 01 — Quickstart
+# 01: Quickstart
 
 ```bash
 pip install minehaulsim            # numpy-only core
@@ -30,7 +30,7 @@ Same via the CLI: `minehaulsim generate --seed 42 --out out/`, then
 ## Reproducibility contract
 
 A `MineSpec` JSON re-runs identically anywhere (`MineSpec.from_json(p).run(...)`); the same
-generation call produces byte-identical spec files. If you need variance, vary the SEED —
+generation call produces byte-identical spec files. If you need variance, vary the SEED, 
 never patch the document by hand (regenerate instead, so `params` stays a truthful audit
 trail).
 

@@ -2,9 +2,9 @@
 
 The physics and queueing results the simulator implements, with the equations and their sources.
 
-- [01 — Rimpull, retarder and speed-by-grade](01_rimpull-speed.md)
-- [02 — Match factor and fleet sizing](02_match-factor.md)
-- [03 — Bunching, headway and direction-zone policies](03_bunching-zones.md)
+- [01: Rimpull, retarder and speed-by-grade](01_rimpull-speed.md)
+- [02: Match factor and fleet sizing](02_match-factor.md)
+- [03: Bunching, headway and direction-zone policies](03_bunching-zones.md)
 
 References used across the pages:
 

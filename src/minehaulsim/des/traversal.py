@@ -2,13 +2,13 @@
 
 A route is traversed leg by leg. Each leg:
     1. JUNCTION at the entry node (if configured): FIFO queue, crossing holds it `cross_s`.
-    2. DIRECTION ZONE (seg.zone_id set): request entry for this direction — opposing traffic is
+    2. DIRECTION ZONE (seg.zone_id set): request entry for this direction: opposing traffic is
        arbitrated by the zone's policy (lockout / loaded_priority / group_batching, U5 resources).
     3. SEGMENT SLOTS: capacity = max(1, floor(length/headway_m)) per direction; entry blocks when
        full (FIFO wakeup on release).
     4. KINEMATIC time from the SpeedSolver (unit + GVW + signed grade + rolling + MIN(limit, cap)),
        then the FIFO NO-OVERTAKE rule: exit_t = max(own_kinematic_exit, predecessor_exit + headway_s).
-       Rule 4 is what serializes fast trucks behind a slow loaded one on a ramp — bunching emerges
+       Rule 4 is what serializes fast trucks behind a slow loaded one on a ramp, bunching emerges
        (Soofastaei 2016), it is never sampled from a distribution.
 
 Determinism: all waits resolve through the U5 resources (FIFO by event sequence); no RNG here.
@@ -40,7 +40,7 @@ class _SegTraffic:
 
 
 class TrafficState:
-    """Per-network runtime traffic state. Keyed by segment id — survives overlay rebuilds for
+    """Per-network runtime traffic state. Keyed by segment id, survives overlay rebuilds for
     unchanged segments; overlay-added segments get fresh state on first use."""
 
     def __init__(self, engine: Engine, net: RoadNetwork,

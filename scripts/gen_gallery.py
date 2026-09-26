@@ -1,5 +1,5 @@
 """Render the 12-seed gallery: the artifact that PROVES generated pits are structurally distinct
-(the original motivation for this package — no more same-pit-every-time synthetics).
+(the original motivation for this package, no more same-pit-every-time synthetics).
 
 Writes gallery/pit-<i>.plan.svg (one per scenario, diffable text) + gallery/README.md with the
 per-pit structural summaries, and a contact-sheet gallery/gallery.png for quick human review.
@@ -23,7 +23,7 @@ def build_gallery(n: int = 12, seed: int = 2026, out: str | Path = "gallery") ->
     written: list[Path] = []
     lines = [
         "# Scenario gallery", "",
-        f"{n} scenarios from `generate_batch(n={n}, seed={seed})` — every one passes the seven",
+        f"{n} scenarios from `generate_batch(n={n}, seed={seed})`, every one passes the seven",
         "validity gates and carries a UNIQUE structural signature (ramp style, depth, roster,",
         "network shape). Regenerate with `python scripts/gen_gallery.py`.", "",
         "| # | preview | structure |",

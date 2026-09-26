@@ -1,4 +1,4 @@
-# minehaulsim — documentation
+# minehaulsim: documentation
 
 Navigable wiki: a folder per theme, a same-named landing page per folder, numbered deep pages
 inside. Authored per build unit as the code shipped (see `CHANGELOG.md` for the unit ↔ version
@@ -6,7 +6,7 @@ map).
 
 | theme | start at | what you'll find |
 |---|---|---|
-| Honesty | [what-it-is-and-isnt.md](what-it-is-and-isnt.md) | scope, claims, v1 simplifications — read first |
+| Honesty | [what-it-is-and-isnt.md](what-it-is-and-isnt.md) | scope, claims, v1 simplifications, read first |
 | Architecture | [architecture/](architecture/architecture.md) | layers, the deterministic engine, network + planning overlay |
 | Theory | [theory/](theory/theory.md) | rimpull/retarder equations, match factor, bunching, zone policies, references |
 | Data contracts | [data-contract/](data-contract/data-contract.md) | cyclelog/v1 verbatim + validator rules, MineSpec, provenance, topo specs, edge handling |

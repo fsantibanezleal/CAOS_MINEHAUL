@@ -131,7 +131,7 @@ def test_truck_direct_flow_loads_at_stubs_with_no_lhd_agents():
 
 
 def test_empty_pass_parks_trucks_until_lhds_deliver():
-    """A tiny pass + slow start: the FIRST truck load must wait for LHD tips — verified by the
+    """A tiny pass + slow start: the FIRST truck load must wait for LHD tips, verified by the
     chute's first 'load' event happening AFTER the shift start (inventory starts at zero)."""
     spec = generate_underground(UndergroundParams(flow_mode="lhd_orepass_truck"), seed=2)
     res = _run(spec, minutes=30.0)
@@ -142,7 +142,7 @@ def test_empty_pass_parks_trucks_until_lhds_deliver():
 def test_zone_policy_ordering_loaded_priority_vs_lockout():
     """Blueprint U10 verify (Queen's 2016 qualitative result): on a decline with opposing
     loaded/empty traffic, loaded_priority arbitration moves AT LEAST as many tonnes as strict
-    lockout — priority to climbing loaded trucks cannot lose throughput on the reference spec."""
+    lockout, priority to climbing loaded trucks cannot lose throughput on the reference spec."""
     import dataclasses
     spec = generate_underground(
         UndergroundParams(flow_mode="truck_direct", n_levels=6, decline_style="spiral",

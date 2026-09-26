@@ -1,4 +1,4 @@
-"""U6a acceptance: the full haul cycle on a hand-built network — cyclelog legality, determinism,
+"""U6a acceptance: the full haul cycle on a hand-built network, cyclelog legality, determinism,
 policy divergence, and the plan coupling (tonnes == depletion; exhausted plan parks trucks)."""
 import numpy as np
 import pytest
@@ -82,7 +82,7 @@ PLAN = MinePlan("pl", (Period(0, 8 * 3600.0, (1, 2)),))
 
 
 def _planned_state():
-    # phases both active; the model's bench anchors are 101/102/103 — build a matching net
+    # phases both active; the model's bench anchors are 101/102/103: build a matching net
     m = hand_model()
     net = RoadNetwork()
     for nid, kind, pos in [(101, "junction", (0.0, 0.0, -15.0)), (102, "junction", (0.0, 800.0, -30.0)),
@@ -121,7 +121,7 @@ def test_plan_coupled_shift_tonnes_equal_depletion_and_trucks_park_when_exhauste
 
 
 def test_traffic_headway_serializes_and_fast_mode_is_free_flow():
-    """U6b: the FIFO no-overtake rule makes bunching EMERGE — dumps arrive >= headway_s apart on the
+    """U6b: the FIFO no-overtake rule makes bunching EMERGE, dumps arrive >= headway_s apart on the
     shared segment; fast_mode (free-flow) lets them arrive closer. Same seed isolates the effect."""
     traffic = run_shift(_net(), [LoaderSpec(1)], [200], TRUCKS6[:3], FixedPolicy(), seed=5)
     fast = run_shift(_net(), [LoaderSpec(1)], [200], TRUCKS6[:3], FixedPolicy(), seed=5, fast_mode=True)

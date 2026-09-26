@@ -1,16 +1,16 @@
-# 02 — The engine and determinism
+# 02: The engine and determinism
 
 ## The engine
 
 A binary heap of `(time, seq, callback, args)`. `seq` is a monotone counter, so equal-time events
-pop FIFO on every platform — the detail that makes cross-OS byte-identity possible. Cancellation
+pop FIFO on every platform, the detail that makes cross-OS byte-identity possible. Cancellation
 is by tombstone (no heap surgery); scheduling into the past raises; a run that can no longer
 progress raises `SimulationDeadlock` instead of spinning.
 
 ## The three determinism rules
 
 1. **One randomness source.** `RngManager(seed)` derives independent named child streams via
-   `SeedSequence((seed, *name.bytes))` — `payload`, `loadtime`, `dumptime`, `policy`, `init`,
+   `SeedSequence((seed, *name.bytes))`, `payload`, `loadtime`, `dumptime`, `policy`, `init`,
    `lhd.dig`, `lhd.bucket`, `fail.truck`, `fail.loader`, and per-attempt generator streams.
    Nothing else may draw randomness; physics modules take no RNG at all.
 2. **Deterministic tie-breaking everywhere.** Adjacency sorted at freeze; Dijkstra ties break on

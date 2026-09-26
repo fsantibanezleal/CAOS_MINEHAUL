@@ -1,4 +1,4 @@
-# ADR-0003 — cyclelog/v1 event anchoring (the DispatchLab semantics decision)
+# ADR-0003: cyclelog/v1 event anchoring (the DispatchLab semantics decision)
 
 - Status: Accepted · Date: 2026-07-02 (recorded at U12; decision locked at U7)
 

@@ -1,12 +1,12 @@
 """The event-scheduling DES engine: an explicit heap loop, no process coroutines.
 
-Why event-scheduling and not simpy-style processes: (1) SPEED — the perf target (>= 20k events/s)
-rules out generator-switching overhead; (2) AUDITABILITY — one explicit loop, one clock, one
-ordering rule; (3) DETERMINISM — heap entries are (t, seq, ...) with `seq` a monotone counter, so
+Why event-scheduling and not simpy-style processes: (1) SPEED, the perf target (>= 20k events/s)
+rules out generator-switching overhead; (2) AUDITABILITY, one explicit loop, one clock, one
+ordering rule; (3) DETERMINISM, heap entries are (t, seq, ...) with `seq` a monotone counter, so
 same-time events pop in schedule order on every platform (no float-tie ambiguity ever reaches the
 comparator).
 
-The clock is float seconds. cyclelog/v1 rounds to 0.1 s AT EXPORT ONLY — never inside the engine.
+The clock is float seconds. cyclelog/v1 rounds to 0.1 s AT EXPORT ONLY, never inside the engine.
 """
 from __future__ import annotations
 

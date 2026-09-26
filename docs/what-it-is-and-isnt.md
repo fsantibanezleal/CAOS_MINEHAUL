@@ -1,4 +1,4 @@
-# What minehaulsim is — and is NOT
+# What minehaulsim is: and is NOT
 
 Honesty page. Read this before trusting any number the package produces.
 
@@ -12,10 +12,10 @@ Honesty page. Read this before trusting any number the package produces.
   rimpull/retarder force envelopes against grade + rolling resistance, per truck class and GVW.
 - A **seeded parametric scenario generator** for open pits (perturbed-superellipse rims, three
   ramp topologies, phases) and multi-level underground mines (declines with passing bays, drift
-  zones, ore passes, shaft bins), each gated by named validity checks — a structurally different,
+  zones, ore passes, shaft bins), each gated by named validity checks, a structurally different,
   valid mine per seed.
 - A **mine-planning layer**: phases/pushbacks, legal depletion with exact conservation, network
-  evolution as benches complete, slope-damage closures, speed zones — coupled to the simulator so
+  evolution as benches complete, slope-damage closures, speed zones, coupled to the simulator so
   cyclelog tonnes and model depletion are the same number by construction.
 - An **interoperability layer**: cyclelog/v1 CSV (the DispatchLab ingest contract, including a
   faithful port of the consumer's validator), provenance JSON, PitTopoSpec / minetopo/v1
@@ -30,7 +30,7 @@ Honesty page. Read this before trusting any number the package produces.
 - **Not a geology or blending model.** Material is a single homogeneous "tonnes" stream; there
   are no grades (ore quality), no blending targets, no dilution, no stockpile rehandle economics.
 - **Not a fuel/emissions model** (v0.x): no fuel burn, tyre wear, or carbon accounting.
-- **Not calibrated to any real operation.** Generated mines are synthetic —
+- **Not calibrated to any real operation.** Generated mines are synthetic, 
   *structure-real at best, always labelled* in the provenance. Nothing here predicts a specific
   mine without calibration against its data.
 - **Not a real-time dispatch product.** The dispatch policies are transparent baselines for

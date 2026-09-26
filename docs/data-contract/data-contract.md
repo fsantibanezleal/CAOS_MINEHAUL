@@ -3,8 +3,8 @@
 Every artifact the package writes or reads, verbatim, with the validation rules and the
 edge-case handling. Consumers should treat this folder as normative.
 
-- [01 — cyclelog/v1 (the DispatchLab ingest contract)](01_cyclelog-v1.md)
-- [02 — MineSpec, provenance and topography documents](02_spec-provenance-topo.md)
+- [01: cyclelog/v1 (the DispatchLab ingest contract)](01_cyclelog-v1.md)
+- [02: MineSpec, provenance and topography documents](02_spec-provenance-topo.md)
 
 ## Outlier / edge handling summary
 

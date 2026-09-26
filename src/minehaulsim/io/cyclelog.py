@@ -1,4 +1,4 @@
-"""cyclelog/v1 writer + validator — the EXACT DispatchLab ingestion contract.
+"""cyclelog/v1 writer + validator, the EXACT DispatchLab ingestion contract.
 
 CSV: header exactly `t,truck_id,shovel_id,event,payload_t`, UTF-8, LF endings.
     t          float seconds, normalized so the first row is 0.0, 1 decimal
@@ -7,13 +7,13 @@ CSV: header exactly `t,truck_id,shovel_id,event,payload_t`, UTF-8, LF endings.
     event      load -> haul -> dump -> return (per-truck legal order; rows time-sorted globally)
     payload_t  0 for load/return; the loaded tonnes (1 decimal, <= 400) for haul/dump
 
-Event anchoring (the integration checkpoint vs DispatchLab's EmpiricalBlock — recorded here and in
+Event anchoring (the integration checkpoint vs DispatchLab's EmpiricalBlock, recorded here and in
 docs/data-contract): loadMeanSec = t_haul - t_load; fullTravelMedian = t_dump - t_haul;
 dumpMean = t_return - t_dump; emptyTravelMedian(+queue) = t_nextload - t_return. run_shift emits
 exactly these semantics (load = loading service START, haul = departure loaded, dump = dumping
 service START, return = departure empty).
 
-`validate_cyclelog` is a faithful Python port of DispatchLab's ingestCycleLog checks — used in
+`validate_cyclelog` is a faithful Python port of DispatchLab's ingestCycleLog checks, used in
 tests AND the CLI, so every shipped artifact is gated by the SAME rules the consumer applies.
 """
 from __future__ import annotations

@@ -125,7 +125,7 @@ def test_check_throughput_catches_an_absurd_fleet(base_spec):
 
 
 def test_generation_error_names_the_failing_checks():
-    # deterministic impossibility: a deep pit (cycle >= ~30 min) with target MF 0.1 — the fleet
+    # deterministic impossibility: a deep pit (cycle >= ~30 min) with target MF 0.1: the fleet
     # floor (4 trucks) still leaves the static MF below 0.5, so throughput_sane fails every attempt
     with pytest.raises(GenerationError, match="throughput_sane"):
         generate_open_pit(OpenPitParams(n_benches=20, bench_height_m=15.0,

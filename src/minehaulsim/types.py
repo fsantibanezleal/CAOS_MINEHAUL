@@ -31,7 +31,7 @@ class SiteKind(str, Enum):
 
 
 class CycleEvent(str, Enum):
-    """cyclelog/v1 event tokens — each marks the START of its phase (DispatchLab contract)."""
+    """cyclelog/v1 event tokens, each marks the START of its phase (DispatchLab contract)."""
     LOAD = "load"
     HAUL = "haul"
     DUMP = "dump"

@@ -1,4 +1,4 @@
-"""minehaulsim CLI — the blueprint's console surface (section 4.5).
+"""minehaulsim CLI, the blueprint's console surface (section 4.5).
 
     minehaulsim generate --seed 42 --out out/            spec JSON (+ plan SVG with [viz])
     minehaulsim generate --preset deep_spiral --out out/
@@ -146,7 +146,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
         return 1
     report = validate_spec(MineSpec.from_json(path))
     for c in report.checks:
-        print(f"  {'PASS' if c.ok else 'FAIL'} {c.name}" + (f" — {c.detail}" if c.detail else ""))
+        print(f"  {'PASS' if c.ok else 'FAIL'} {c.name}" + (f", {c.detail}" if c.detail else ""))
     return 0 if report.ok else 1
 
 
@@ -161,7 +161,7 @@ def cmd_demo(_args: argparse.Namespace) -> int:
 
 
 def cmd_info(_args: argparse.Namespace) -> int:
-    print(f"minehaulsim {minehaulsim.__version__} — deterministic mine-haulage DES "
+    print(f"minehaulsim {minehaulsim.__version__}, deterministic mine-haulage DES "
           f"(numpy-only core)")
     print(f"  presets: {', '.join(preset_names())}")
     try:

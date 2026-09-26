@@ -4,7 +4,7 @@ Every grant is FIFO by request order (the engine's monotone event sequencing fee
 so runs are reproducible to the byte. `DirectionZoneResource` implements the three arbitration
 policies of the constraints layer and carries the DEADLOCK DETECTOR: if any requester has waited
 longer than `deadlock_timeout_s` while the zone made zero transitions, the run raises
-`SimulationDeadlock` — a stuck model fails loudly instead of hanging.
+`SimulationDeadlock`, a stuck model fails loudly instead of hanging.
 """
 from __future__ import annotations
 

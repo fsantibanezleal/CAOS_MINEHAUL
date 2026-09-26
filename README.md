@@ -16,23 +16,23 @@ road networks, with seeded parametric mine generators.**
 
 No open-source package simulates mine haulage on a *real constrained road network*: existing OSS
 simulators use one fixed mine layout, scalar distance matrices, no grades/rimpull and no traffic
-constraints — and the tools that do this right (HAULSIM, TALPAC-3D, SimMine) are commercial and
+constraints, and the tools that do this right (HAULSIM, TALPAC-3D, SimMine) are commercial and
 closed. `minehaulsim` fills that gap:
 
 - **Constrained road network, first-class.** Haul routes are a directed multigraph: one-way ramps,
   width/passing classes, junction blocking, direction zones (single-lane drifts with passing bays),
-  speed-by-grade from rimpull/retarder curves — travel times come from the network, not scalars.
+  speed-by-grade from rimpull/retarder curves, travel times come from the network, not scalars.
 - **Genuinely varied mines.** Seeded parametric generators for open pits (benches, phases,
   spiral/switchback ramps, multiple faces/dumps) and underground multi-level mines (levels,
-  declines, shafts, ore passes, drifts) — a different, valid mine per seed, never one shape reused.
+  declines, shafts, ore passes, drifts), a different, valid mine per seed, never one shape reused.
 - **Deterministic DES core.** Hand-rolled event engine (no simpy); a run is a pure function of
-  `(spec, policy, seed)` — byte-identical outputs across OS/sessions. Dispatch-policy hook with
+  `(spec, policy, seed)`, byte-identical outputs across OS/sessions. Dispatch-policy hook with
   baseline policies included.
 - **Interoperable outputs.** `cyclelog/v1` CSV event logs (load/haul/dump/return), provenance JSON,
   a per-truck position trace, and topography exports for 3D viewers.
 - **numpy-only core.** Visualization is an opt-in extra; the core never imports matplotlib.
 
-## Scenario variety — the gallery
+## Scenario variety: the gallery
 
 Twelve scenarios from one `generate_batch(12, seed=2026)` call, every one passing the seven
 validity gates with a unique structural signature (full set + per-pit summaries in
@@ -42,14 +42,14 @@ validity gates with a unique structural signature (full set + per-pit summaries 
 
 ## Status
 
-`0.10.000` — the first published release: equipment + rimpull kinematics, constrained routing,
+`0.10.000`, the first published release: equipment + rimpull kinematics, constrained routing,
 deterministic DES with per-segment traffic (emergent bunching), the full haul cycle with five
 dispatch policies, a mine-planning layer (phases, depletion, slope damage, speed zones),
 underground multi-level mines with LHD/ore-pass inventory coupling and three flow modes,
 opt-in failure processes with a CI-enforced performance floor, the DispatchLab IO contracts,
 the varied generators, the viz extra and the CLI. Per-unit history in `CHANGELOG.md`.
 
-**Docs:** the navigable wiki starts at [`docs/README.md`](docs/README.md) — read
+**Docs:** the navigable wiki starts at [`docs/README.md`](docs/README.md), read
 [`docs/what-it-is-and-isnt.md`](docs/what-it-is-and-isnt.md) before trusting any number.
 
 ## Install

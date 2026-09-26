@@ -3,7 +3,7 @@
 A Phase mines its benches TOP-DOWN in `bench_ids` order and may require predecessor phases (the
 bench-lag simplification of v1: full completion; the Milawa-style bench-lead lag is a later axis,
 documented in docs/what-it-is-and-isnt). A MinePlan is a contiguous sequence of Periods, each
-declaring the phases whose faces are DIGGABLE during it plus optional tonnage targets — evaluation
+declaring the phases whose faces are DIGGABLE during it plus optional tonnage targets, evaluation
 compares achieved vs target; the simulator enforces only LEGALITY, never magically moves tonnes.
 """
 from __future__ import annotations
@@ -65,7 +65,7 @@ class MinePlan:
     def validate(self, model) -> list[str]:
         """Plan-vs-model issues (empty = valid). Includes the precedence-impossibility flag:
         a phase active in period p whose `requires` closure contains a phase never active in
-        any period <= p can never legally dig — the plan is broken by construction."""
+        any period <= p can never legally dig, the plan is broken by construction."""
         issues: list[str] = []
         known = {ph.id for ph in model.phases}
         for per in self.periods:

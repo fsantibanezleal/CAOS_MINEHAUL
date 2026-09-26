@@ -1,4 +1,4 @@
-"""PitState: the ONLY mutable object in the planning layer — mining progression over a frozen
+"""PitState: the ONLY mutable object in the planning layer, mining progression over a frozen
 (PitModel, MinePlan), with explicit transitions, a journal, exact conservation, and the network
 overlay that lets progression affect routing without mutating the frozen graph.
 
@@ -198,7 +198,7 @@ class PitState:
 
     def on_load(self, face_node: int, tonnes: float) -> DepletionResult:
         """Couple the sim to depletion: each completed loading depletes the SAME tonnes the
-        cyclelog records — simulation output and model state can never diverge."""
+        cyclelog records, simulation output and model state can never diverge."""
         return self.deplete(self.block_at_face(face_node), tonnes)
 
     def topo_delta(self) -> list[dict[str, Any]]:
@@ -360,7 +360,7 @@ class PitState:
 
     def _complete_bench(self, bench_id: int, phase_id: int) -> None:
         # The completed bench's spur PERSISTS as a legacy road (physical reality: the road to a
-        # mined-out bench remains until the next pushback overruns it) — retiring it instantly
+        # mined-out bench remains until the next pushback overruns it): retiring it instantly
         # would strand trucks queued/parked at the dead face with no exit geometry.
         self._face_spur.pop(bench_id, None)
         self._face_node.pop(bench_id, None)

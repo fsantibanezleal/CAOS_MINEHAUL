@@ -1,11 +1,11 @@
 """Material-flow state: the objects that COUPLE the two underground fleets.
 
-OrePassRuntime — a finite-capacity vertical inventory. LHD tips ADD tonnes at the tip; the
+OrePassRuntime, a finite-capacity vertical inventory. LHD tips ADD tonnes at the tip; the
 haulage-level chute SUBTRACTS them when it loads a truck. A full pass blocks the LHD at the tip;
 an empty pass parks the loading truck under the chute. Conservation is a tested invariant:
     tipped_t == chuted_t + level_t   (exactly, every event)
 
-ShaftBinRuntime — the shaft option's dump target: a bin drained continuously by hoisting at
+ShaftBinRuntime, the shaft option's dump target: a bin drained continuously by hoisting at
 `hoist_tph`. Dumping needs headroom; the required wait for space is CLOSED-FORM (deterministic),
 never polled.
 """

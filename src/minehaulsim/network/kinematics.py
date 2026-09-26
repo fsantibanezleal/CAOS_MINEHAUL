@@ -4,7 +4,7 @@ The TALPAC/FPC-standard model:
     Effective resistance [%] = grade_pct (signed, + uphill in travel direction) + rolling_pct.
     Required force at constant speed:  F_req [kN] = GVW_t * g * (effective_resistance / 100).
     UPHILL / positive resistance: attainable speed = the largest v with rimpull(v) >= F_req.
-    DOWNHILL (negative effective resistance): the truck must HOLD the descent — attainable speed =
+    DOWNHILL (negative effective resistance): the truck must HOLD the descent, attainable speed =
     the largest v with retarder(v) >= |F_req| (dynamic-brake absorption limits descent speed).
     Final segment speed = min(attainable, segment speed limit, class max speed).
 
@@ -13,7 +13,7 @@ Traversal time adds a bounded trapezoidal acceleration penalty:
 `v_entry` is the previous segment's speed (a junction stop resets it to 0), so ramp climbs out of
 junctions are honestly slower than free-flow.
 
-Scalability: `SpeedSolver` memoizes on (class, GVW bucket, grade key, rr, limit) — the event loop
+Scalability: `SpeedSolver` memoizes on (class, GVW bucket, grade key, rr, limit), the event loop
 never solves a curve; hot lookups are O(1) dict hits. ~12 GVW buckets between empty and max
 payload bound the cache size per class.
 """
@@ -57,7 +57,7 @@ def attainable_speed_kmh(unit: TruckClass | LhdClass, gvw_t: float, grade_pct: f
 
 
 class SpeedSolver:
-    """Memoized speed lookups per (unit, GVW bucket, grade, rr, limit) — the event-loop-safe API."""
+    """Memoized speed lookups per (unit, GVW bucket, grade, rr, limit), the event-loop-safe API."""
 
     def __init__(self) -> None:
         self._cache: dict[tuple, float] = {}

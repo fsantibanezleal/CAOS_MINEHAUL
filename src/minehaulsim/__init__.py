@@ -1,8 +1,8 @@
-"""minehaulsim — deterministic DES of open-pit + underground mine haulage on constrained road networks.
+"""minehaulsim, deterministic DES of open-pit + underground mine haulage on constrained road networks.
 
 Public API grows per build unit; see CHANGELOG.md. Display version lives in VERSION (X.XX.XXX).
 """
-__version__ = "0.12.0"  # PEP 440; display form in VERSION. MUST bind before submodule imports:
+__version__ = "0.12.1"  # PEP 440; display form in VERSION. MUST bind before submodule imports:
                        # io.provenance reads it during package initialization.
 
 from .rng import RngManager                                                    # noqa: E402

@@ -1,6 +1,6 @@
 """Named preset scenarios: fixed (params, seed) pairs that regenerate identically anywhere.
 
-Presets are entry points for examples, docs and the CLI — each exercises a different structural
+Presets are entry points for examples, docs and the CLI, each exercises a different structural
 class of pit so a consumer sees the variety without writing sampler code.
 """
 from __future__ import annotations

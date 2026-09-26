@@ -1,4 +1,4 @@
-# ADR-0006 — Underground fleets couple ONLY through material inventories
+# ADR-0006: Underground fleets couple ONLY through material inventories
 
 - Status: Accepted · Date: 2026-07-02 (decision made at U10)
 
@@ -15,7 +15,7 @@ The ONLY coupling is material state (`des/materials.py`):
 
 - `OrePassRuntime`: LHD tips add tonnes; the chute draws a truck's payload at load grant. A full
   pass parks the LHD at the tip; an empty pass parks the granted truck UNDER the chute (holding
-  its loading spot — physically true). An iterative FIFO `_settle` serves both queues without
+  its loading spot, physically true). An iterative FIFO `_settle` serves both queues without
   recursion.
 - `ShaftBinRuntime`: continuous hoist drain; a full bin holds the dumping truck for the exact
   closed-form time to headroom (never polled).
@@ -27,5 +27,5 @@ Conservation is a tested invariant on every run: `tipped == chuted + inventory`,
 
 - Dispatch policies remain truck-side only; LHD behavior is fixed physics (round-robin
   drawpoints). A future LHD-dispatch hook can be added without touching the coupling.
-- Starvation/saturation dynamics EMERGE from capacities and cycle times — the phenomena a
-  consumer wants to study — rather than being parameterized.
+- Starvation/saturation dynamics EMERGE from capacities and cycle times: the phenomena a
+  consumer wants to study, rather than being parameterized.

@@ -26,7 +26,7 @@ def test_adjacency_honors_one_way():
     net = _net()
     # leaving node 3: segment 11 is one-way 2->3, so NOTHING leaves 3 via it
     assert list(net.leaving(3)) == []
-    # leaving node 2: both directions of 10? no — 10 is a->b 1->2, so from 2 it's direction -1
+    # leaving node 2: both directions of 10? no: 10 is a->b 1->2, so from 2 it's direction -1
     leaving2 = {(s.id, d) for s, d in net.leaving(2)}
     assert (10, -1) in leaving2 and (11, +1) in leaving2 and (12, +1) in leaving2
 

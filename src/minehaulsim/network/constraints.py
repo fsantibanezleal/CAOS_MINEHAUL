@@ -3,7 +3,7 @@
 These are DATA here (immutable specs the generator emits); their runtime semantics (who waits,
 when direction flips) are enforced by the DES resource layer (des/resources.py) which reads them.
 
-DirectionZone — a chain of single-lane BIDIRECTIONAL segments between passing bays (an underground
+DirectionZone, a chain of single-lane BIDIRECTIONAL segments between passing bays (an underground
 drift between stockpiles/bays, a narrow one-lane pit ramp). At runtime it grants a DIRECTION:
 vehicles traveling the active direction may enter (up to `max_in_zone`); opposing vehicles wait at
 the boundary. Arbitration policies (the classic underground set, cf. Queen's 2016 traffic-sim work):
@@ -11,7 +11,7 @@ the boundary. Arbitration policies (the classic underground set, cf. Queen's 201
     loaded_priority  direction flips only when no LOADED vehicle still waits upstream
     group_batching   direction holds until k vehicles pass or a max-hold timer expires
 
-Junction — a capacity-k conflict point where >= 3 used segments meet; crossing consumes the
+Junction, a capacity-k conflict point where >= 3 used segments meet; crossing consumes the
 junction for `cross_s` seconds, FIFO by arrival event order (deterministic).
 """
 from __future__ import annotations

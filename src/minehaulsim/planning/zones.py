@@ -7,7 +7,7 @@ design limit stays static beneath the overlay. Deliberately distinct from constr
 (a traffic-arbitration RESOURCE); a SpeedZone is a pure speed overlay.
 
 Composition: per-segment cap = MIN over all zones containing the segment (+ `extra` pairs, e.g.
-damage derations). The segment's own limit is NOT applied here — Router/DES already take
+damage derations). The segment's own limit is NOT applied here, Router/DES already take
 min(segment.speed_limit_kmh, cap) at the call site, so a cap above the limit is naturally a no-op.
 """
 from __future__ import annotations

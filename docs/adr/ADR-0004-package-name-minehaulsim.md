@@ -1,4 +1,4 @@
-# ADR-0004 — Package name: `minehaulsim`
+# ADR-0004: Package name: `minehaulsim`
 
 - Status: Accepted · Date: 2026-07-02 (recorded at U12; decision made at U1)
 
@@ -10,7 +10,7 @@ neutrality (no product branding that would age badly).
 
 ## Decision
 
-`minehaulsim` — mine + haulage + simulation. Repo `CAOS_MINEHAUL`; import name, distribution
+`minehaulsim`, mine + haulage + simulation. Repo `CAOS_MINEHAUL`; import name, distribution
 name and CLI entry point all `minehaulsim`.
 
 ## Consequences

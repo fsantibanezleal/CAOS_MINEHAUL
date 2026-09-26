@@ -1,4 +1,4 @@
-"""run_shift: the open-pit haul cycle on the constrained network — the layer that joins the engine,
+"""run_shift: the open-pit haul cycle on the constrained network, the layer that joins the engine,
 the routing, the equipment, the plan and the dispatch policy.
 
 Cycle (event semantics = cyclelog/v1, each event marks the START of its phase):
@@ -8,7 +8,7 @@ Cycle (event semantics = cyclelog/v1, each event marks the START of its phase):
 Travel model (U6a): a leg's duration is the ROUTE's free-flow kinematic time from the constrained
 Router (closures + speed caps from the PlanContext overlay respected on every quote). Per-segment
 slot/zone/junction occupancy (the emergent-bunching tier, resources already built+tested in U5) is
-wired in U6b — documented so nobody mistakes free-flow for congested times.
+wired in U6b, documented so nobody mistakes free-flow for congested times.
 
 Plan coupling (PlanContext, design P8): loaders at non-diggable faces REFUSE service (the policy
 never sees them as serviceable); every completed loading calls on_load(face, payload) so cyclelog
@@ -364,7 +364,7 @@ class _Sim:
         arrive_t = self.engine.now
 
         def start_loading() -> None:
-            # U11: loader downtime surfaces at service start — the granted truck WAITS at the
+            # U11: loader downtime surfaces at service start: the granted truck WAITS at the
             # face through the repair (dispatch sees it via est_free_s in the MineView)
             if self.failures is not None and self.failures.loader_due(loader, self.engine.now):
                 rep = self.failures.loader_repair_s(loader, self.engine.now)
@@ -393,7 +393,7 @@ class _Sim:
                 start_loading()
                 return
             # CHUTE (U10): the payload is drawn from the ore-pass inventory. Reserve it at grant;
-            # an empty pass parks the truck UNDER the chute (holding the spot — the physical
+            # an empty pass parks the truck UNDER the chute (holding the spot: the physical
             # reality) until LHD tips cover it (FIFO via _settle).
             unit: TruckClass = TRUCKS[self.trucks[tid].unit_name]
             pay_rng = self.rng.stream("payload")
@@ -429,10 +429,10 @@ class _Sim:
 
     def _depart_loaded(self, tid: int, loader: int, payload: float) -> None:
         """Payload is FINAL here; retry-safe (a closure window may hold the loaded truck at the
-        face — it keeps the loader spot, which is the physical reality of a blocked ramp)."""
+        face, it keeps the loader spot, which is the physical reality of a blocked ramp)."""
         truck = self.trucks[tid]
         # QUOTE the outbound route BEFORE depleting: if this load completes the bench, the face
-        # spur retires — but the truck physically leaves on the geometry it arrived on (design P4:
+        # spur retires: but the truck physically leaves on the geometry it arrived on (design P4:
         # in-flight legs finish on the old geometry).
         mv = self._mine_view(truck, loader)
         dump = self.policy.next_dump(TruckView(tid, truck.unit_name, truck.start_loader), mv)
@@ -496,7 +496,7 @@ class _Sim:
         self._dispatch_next(tid, dump)
 
     def _dispatch_next(self, tid: int, at_node: int) -> None:
-        # U11: breakdowns materialize at the cycle boundary — the truck finished its leg and
+        # U11: breakdowns materialize at the cycle boundary: the truck finished its leg and
         # parks HERE for the repair (v1 semantics: no mid-segment blocking, documented)
         if self.failures is not None and self.failures.truck_due(tid, self.engine.now):
             rep = self.failures.truck_repair_s(tid, self.engine.now)
@@ -510,7 +510,7 @@ class _Sim:
             return                                       # plan exhausted: park the truck
         tt = mv.eta_s.get((tid, loader))
         if tt is None or tt == float("inf"):
-            # unreachable: a maintenance window may reopen the road — retry then. A severed
+            # unreachable: a maintenance window may reopen the road: retry then. A severed
             # plan/damage closure has no window, so without closures the truck stays parked.
             if self.failures is not None and self.failures.config.closures:
                 self.engine.after(CLOSURE_RETRY_S, self._dispatch_next, tid, at_node)
@@ -530,7 +530,7 @@ class _Sim:
             self.result.materials[f"pass_{pid}"] = p.summary()
         if self.passes:
             # tonnes drawn from a pass by trucks still LOADING at cutoff (their 'haul' event
-            # never fired) — the term that closes the conservation balance
+            # never fired): the term that closes the conservation balance
             self.result.materials["chute_in_flight_t"] = round(
                 sum(self._chute_payload.values()), 6)
         if self.bin is not None:

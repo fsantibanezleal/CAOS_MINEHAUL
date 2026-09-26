@@ -14,7 +14,7 @@ def polyline_length(pts: np.ndarray) -> float:
 
 
 def horizontal_length(pts: np.ndarray) -> float:
-    """Plan-view (xy) arc length — the denominator of a grade."""
+    """Plan-view (xy) arc length, the denominator of a grade."""
     d = np.diff(np.asarray(pts, dtype=np.float64)[:, :2], axis=0)
     return float(np.sum(np.sqrt(np.sum(d * d, axis=1))))
 

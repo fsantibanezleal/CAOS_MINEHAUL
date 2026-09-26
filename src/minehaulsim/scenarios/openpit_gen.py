@@ -4,7 +4,7 @@
 "fleet" streams, builds the pit (geometry.openpit), sizes the fleet to a target match factor, and
 gates the result through every validity check (scenarios.validate). A failing attempt resamples
 (fresh substreams per attempt); after `max_attempts` it raises `GenerationError` naming the
-failing checks — never a silently degenerate scenario.
+failing checks, never a silently degenerate scenario.
 
 Sampled axes (blueprint table): depth 6..20 benches | bench height {10,12,15} | berm 8..15 m |
 face angle 60..75 deg | superellipse exponent 1.7..2.6, eccentricity 1..1.9, azimuth, radial
@@ -162,7 +162,7 @@ def _sample_design(p: OpenPitParams, geo: np.random.Generator) -> OpenPitDesign:
 def _assemble_spec(p: OpenPitParams, seed: int, design: OpenPitDesign,
                    fleet: np.random.Generator) -> MineSpec | None:
     """Build geometry, size the fleet to the target MF, assemble the frozen document.
-    Returns None when the sized fleet cannot be estimated (unroutable) — caller resamples."""
+    Returns None when the sized fleet cannot be estimated (unroutable), caller resamples."""
     geo_built = build_open_pit(design)
     net = geo_built.network
     assert net is not None
